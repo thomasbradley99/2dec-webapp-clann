@@ -4,13 +4,22 @@ const { v4: uuidv4 } = require('uuid');
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
     try {
-        // Create team first
+        // Start transaction
+        await db.query('BEGIN');
+        
+        // Create team
         const teamId = uuidv4();
         const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
         
         await db.query(
             "INSERT INTO Teams (id, name, team_code) VALUES ($1, $2, $3)",
             [teamId, team_name, teamCode]
+        );
+        
+        // Add user as team admin in TeamMembers table
+        await db.query(
+            "INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)",
+            [teamId, req.user.id, true]
         );
         
         // Create session
@@ -20,11 +29,16 @@ exports.createSession = async (req, res) => {
             [sessionId, teamId, footage_url, new Date(), 'PENDING']
         );
         
+        // Commit transaction
+        await db.query('COMMIT');
+        
         res.json({
             ...result.rows[0],
             team_code: teamCode
         });
     } catch (err) {
+        // Rollback on error
+        await db.query('ROLLBACK');
         console.error('Session creation failed:', err);
         res.status(500).json({ error: err.message });
     }

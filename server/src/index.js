@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const sessionsRoutes = require('./routes/sessions');
+const teamsRoutes = require('./routes/teams');
 
 // Create Express server
 const app = express();
@@ -13,6 +14,7 @@ app.use(express.json());
 // Routes
 app.use('/api/auth', authRoutes);        // Handle login/register
 app.use('/api/sessions', sessionsRoutes); // Handle game sessions
+app.use('/api/teams', teamsRoutes);      // Add this
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -25,4 +27,5 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
     console.log(`- Auth endpoints: /api/auth/*`);
     console.log(`- Session endpoints: /api/sessions/*`);
+    console.log(`- Teams endpoints: /api/teams/*`);
 });
