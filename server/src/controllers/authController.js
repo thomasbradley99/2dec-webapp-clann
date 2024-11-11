@@ -18,14 +18,17 @@ exports.login = async (req, res) => {
 
 exports.register = async (req, res) => {
     const { email, password } = req.body;
+    console.log(`Registration attempt for email: ${email}`);
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await db.query(
             "INSERT INTO Users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role",
             [email, hashedPassword, "USER"]
         );
+        console.log(`User registered successfully: ${email}`);
         res.json(result.rows[0]);
     } catch (err) {
+        console.error(`Registration failed for ${email}:`, err.message);
         res.status(500).json({ error: err.message });
     }
 };
