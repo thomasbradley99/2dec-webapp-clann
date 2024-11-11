@@ -15,7 +15,7 @@ function Login() {
       if (isLogin) {
         const user = await userService.validateUser(email, password);
         if (user) {
-          navigate('/dashboard');
+          navigate('/sessions');
         } else {
           setError('Invalid email or password');
         }
