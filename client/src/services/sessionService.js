@@ -2,32 +2,40 @@ import axios from 'axios';
 
 const API_URL = 'http://localhost:3001/api';
 
+const getHeaders = () => {
+    const user = JSON.parse(localStorage.getItem('user'));
+    return {
+        headers: {
+            'user-id': user?.id
+        }
+    };
+};
+
 const sessionService = {
+    getSessions: async () => {
+        try {
+            const response = await axios.get(`${API_URL}/sessions`, getHeaders());
+            return response.data;
+        } catch (error) {
+            throw error.response?.data?.error || 'Failed to fetch sessions';
+        }
+    },
+
     createSession: async (url, teamName) => {
         try {
             const response = await axios.post(`${API_URL}/sessions/create`, {
                 footage_url: url,
                 team_name: teamName
-            });
+            }, getHeaders());
             return response.data;
         } catch (error) {
             throw error.response?.data?.error || 'Failed to create session';
         }
     },
-    getSessions: async () => {
-        try {
-            console.log('Fetching sessions...');
-            const response = await axios.get(`${API_URL}/sessions`);
-            console.log('Sessions response:', response.data);
-            return response.data;
-        } catch (error) {
-            console.error('Sessions fetch error:', error);
-            throw error.response?.data?.error || 'Failed to fetch sessions';
-        }
-    },
+
     deleteSession: async (sessionId) => {
         try {
-            await axios.delete(`${API_URL}/sessions/${sessionId}`);
+            await axios.delete(`${API_URL}/sessions/${sessionId}`, getHeaders());
         } catch (error) {
             throw error.response?.data?.error || 'Failed to delete session';
         }

@@ -7,26 +7,42 @@ exports.createSession = async (req, res) => {
         // Start transaction
         await db.query('BEGIN');
         
-        // Create team
-        const teamId = uuidv4();
-        const teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-        
-        await db.query(
-            "INSERT INTO Teams (id, name, team_code) VALUES ($1, $2, $3)",
-            [teamId, team_name, teamCode]
-        );
-        
-        // Add user as team admin in TeamMembers table
-        await db.query(
-            "INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)",
-            [teamId, req.user.id, true]
-        );
+        // Check if team already exists for this user
+        const existingTeam = await db.query(`
+            SELECT t.* 
+            FROM Teams t
+            INNER JOIN TeamMembers tm ON t.id = tm.team_id
+            WHERE LOWER(t.name) = LOWER($1) AND tm.user_id = $2
+        `, [team_name, req.user.id]);
+
+        let teamId, teamCode;
+
+        if (existingTeam.rows.length > 0) {
+            // Use existing team
+            teamId = existingTeam.rows[0].id;
+            teamCode = existingTeam.rows[0].team_code;
+        } else {
+            // Create new team
+            teamId = uuidv4();
+            teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            
+            await db.query(
+                "INSERT INTO Teams (id, name, team_code) VALUES ($1, $2, $3)",
+                [teamId, team_name, teamCode]
+            );
+            
+            // Add user as team admin in TeamMembers table
+            await db.query(
+                "INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)",
+                [teamId, req.user.id, true]
+            );
+        }
         
         // Create session
         const sessionId = uuidv4();
         const result = await db.query(
-            "INSERT INTO Sessions (id, team_id, footage_url, game_date, status) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-            [sessionId, teamId, footage_url, new Date(), 'PENDING']
+            "INSERT INTO Sessions (id, team_id, footage_url, game_date, status, uploaded_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+            [sessionId, teamId, footage_url, new Date(), 'PENDING', req.user.id]
         );
         
         // Commit transaction
@@ -34,6 +50,7 @@ exports.createSession = async (req, res) => {
         
         res.json({
             ...result.rows[0],
+            team_name,
             team_code: teamCode
         });
     } catch (err) {
@@ -45,18 +62,23 @@ exports.createSession = async (req, res) => {
 };
 
 exports.getSessions = async (req, res) => {
+    const userId = req.user.id;
     try {
         const result = await db.query(`
             SELECT 
                 s.*,
                 t.name as team_name,
-                t.team_code
+                t.team_code,
+                u.email as uploaded_by_email
             FROM Sessions s
-            LEFT JOIN Teams t ON s.team_id = t.id
+            INNER JOIN Teams t ON s.team_id = t.id
+            INNER JOIN TeamMembers tm ON t.id = tm.team_id
+            INNER JOIN Users u ON s.uploaded_by = u.id
+            WHERE tm.user_id = $1
             ORDER BY s.created_at DESC
-        `);
+        `, [userId]);
         
-        console.log('Fetched sessions:', result.rows); // Debug log
+        console.log('Fetched sessions for user:', userId);
         res.json(result.rows);
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
