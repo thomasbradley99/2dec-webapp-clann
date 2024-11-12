@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import teamService from '../services/teamService';
+import NavBar from '../components/NavBar';
 
 function Profile() {
     const navigate = useNavigate();
@@ -39,9 +40,10 @@ function Profile() {
         <div style={{ 
             backgroundColor: '#1a1a1a', 
             minHeight: '100vh',
-            color: '#ffffff'
+            color: '#ffffff',
+            paddingBottom: '80px'
         }}>
-            <div style={{ padding: '20px', paddingBottom: '80px' }}>
+            <div style={{ padding: '20px' }}>
                 <h2>Profile</h2>
                 
                 {/* Profile Info */}
@@ -81,11 +83,16 @@ function Profile() {
                                         padding: '15px',
                                         backgroundColor: '#1a1a1a',
                                         borderRadius: '4px',
-                                        marginBottom: '10px'
+                                        marginBottom: '10px',
+                                        border: '1px solid #333'
                                     }}
                                 >
                                     <p style={{ fontWeight: 'bold' }}>{team.name}</p>
-                                    <p style={{ color: '#888888', fontSize: '14px' }}>
+                                    <p style={{ 
+                                        color: '#888888', 
+                                        fontSize: '14px',
+                                        marginTop: '5px'
+                                    }}>
                                         Team Code: {team.team_code}
                                     </p>
                                 </div>
@@ -122,6 +129,7 @@ function Profile() {
                     Logout
                 </button>
             </div>
+            <NavBar />
         </div>
     );
 }
