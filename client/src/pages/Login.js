@@ -11,22 +11,35 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    
     try {
-      if (isLogin) {
-        const user = await userService.validateUser(email, password);
-        if (user) {
-          navigate('/sessions');
+        if (isLogin) {
+            const response = await userService.validateUser(email, password);
+            console.log('Login successful:', response);
+            localStorage.setItem('user', JSON.stringify(response));
+            navigate('/sessions');
         } else {
-          setError('Invalid email or password');
+            try {
+                const response = await userService.createUser(email, password);
+                console.log('Registration successful:', response);
+                setIsLogin(true);
+                setError('Registration successful! Please login.');
+                setEmail('');
+                setPassword('');
+            } catch (err) {
+                console.error('Registration error:', err);
+                if (err.message && err.message.includes('duplicate')) {
+                    setError('This email is already registered. Please login instead.');
+                    setIsLogin(true);
+                } else {
+                    setError('Registration failed. Please try again.');
+                }
+            }
         }
-      } else {
-        await userService.createUser(email, password);
-        setIsLogin(true);
-        setError('Registration successful! Please login.');
-      }
     } catch (err) {
-      console.error('Auth error:', err);
-      setError(err.message || 'An error occurred');
+        console.error('Auth error:', err);
+        setError(err.message || 'An error occurred');
     }
   };
 

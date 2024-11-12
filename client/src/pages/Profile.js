@@ -7,10 +7,17 @@ function Profile() {
     const [teams, setTeams] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [user, setUser] = useState(null);
 
     useEffect(() => {
+        const userData = JSON.parse(localStorage.getItem('user'));
+        if (!userData) {
+            navigate('/');
+            return;
+        }
+        setUser(userData);
         fetchTeams();
-    }, []);
+    }, [navigate]);
 
     const fetchTeams = async () => {
         try {
@@ -24,6 +31,7 @@ function Profile() {
     };
 
     const handleLogout = () => {
+        localStorage.removeItem('user');
         navigate('/');
     };
 
@@ -44,10 +52,10 @@ function Profile() {
                     marginTop: '20px'
                 }}>
                     <p style={{ color: '#888888' }}>Email</p>
-                    <p style={{ marginTop: '5px' }}>coach@team.com</p>
+                    <p style={{ marginTop: '5px' }}>{user?.email || 'Loading...'}</p>
                     
                     <p style={{ color: '#888888', marginTop: '20px' }}>Role</p>
-                    <p style={{ marginTop: '5px' }}>Team Admin</p>
+                    <p style={{ marginTop: '5px' }}>{user?.role || 'Loading...'}</p>
                 </div>
 
                 {/* Teams Section */}
