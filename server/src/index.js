@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const authRoutes = require('./routes/auth');
 const sessionsRoutes = require('./routes/sessions');
 const teamsRoutes = require('./routes/teams');
@@ -10,6 +11,9 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Add this line to serve the uploads directory
+app.use('/analysis-images', express.static(path.join(__dirname, '../public/analysis-images')));
 
 // Routes
 app.use('/api/auth', authRoutes);        // Handle login/register
