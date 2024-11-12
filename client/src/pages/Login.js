@@ -18,7 +18,13 @@ function Login() {
             const response = await userService.validateUser(email, password);
             console.log('Login successful:', response);
             localStorage.setItem('user', JSON.stringify(response));
-            navigate('/sessions');
+            
+            // Redirect based on user role
+            if (response.role === 'COMPANY_MEMBER') {
+                navigate('/company');
+            } else {
+                navigate('/sessions');
+            }
         } else {
             try {
                 const response = await userService.createUser(email, password);
