@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import teamService from '../services/teamService';
+import authService from '../services/authService';
 import NavBar from '../components/NavBar';
 
 function Profile() {
@@ -49,6 +50,18 @@ function Profile() {
     const handleLogout = () => {
         localStorage.removeItem('user');
         navigate('/');
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            try {
+                await authService.deleteAccount();
+                localStorage.removeItem('user');
+                navigate('/');
+            } catch (err) {
+                alert(err);
+            }
+        }
     };
 
     return (
@@ -164,6 +177,7 @@ function Profile() {
                     )}
                 </div>
 
+                {/* Logout Button */}
                 <button 
                     onClick={handleLogout}
                     style={{
@@ -188,6 +202,31 @@ function Profile() {
                     }}
                 >
                     Logout
+                </button>
+
+                {/* Delete Account Button */}
+                <button 
+                    onClick={handleDeleteAccount}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        backgroundColor: '#FF4444',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        marginTop: '10px',
+                        cursor: 'pointer',
+                        fontSize: '16px',
+                        transition: 'all 0.2s ease'
+                    }}
+                    onMouseOver={(e) => {
+                        e.target.style.backgroundColor = '#CC3333';
+                    }}
+                    onMouseOut={(e) => {
+                        e.target.style.backgroundColor = '#FF4444';
+                    }}
+                >
+                    Delete Account
                 </button>
             </div>
             <NavBar />

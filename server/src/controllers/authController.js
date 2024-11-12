@@ -32,3 +32,27 @@ exports.register = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.deleteAccount = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        // Start transaction
+        await db.query('BEGIN');
+
+        // Delete user from TeamMembers
+        await db.query("DELETE FROM TeamMembers WHERE user_id = $1", [userId]);
+
+        // Delete user from Users table
+        await db.query("DELETE FROM Users WHERE id = $1", [userId]);
+
+        // Commit transaction
+        await db.query('COMMIT');
+
+        res.json({ message: "Account deleted successfully" });
+    } catch (err) {
+        // Rollback on error
+        await db.query('ROLLBACK');
+        console.error('Account deletion failed:', err);
+        res.status(500).json({ error: 'Failed to delete account' });
+    }
+};

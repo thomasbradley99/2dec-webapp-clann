@@ -89,9 +89,34 @@ exports.getSessions = async (req, res) => {
 exports.deleteSession = async (req, res) => {
     const { id } = req.params;
     try {
+        // Start transaction
+        await db.query('BEGIN');
+
+        // Get the team ID associated with the session
+        const sessionResult = await db.query("SELECT team_id FROM Sessions WHERE id = $1", [id]);
+        if (sessionResult.rows.length === 0) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+        const teamId = sessionResult.rows[0].team_id;
+
+        // Delete the session
         await db.query("DELETE FROM Sessions WHERE id = $1", [id]);
-        res.json({ message: "Session deleted successfully" });
+
+        // Check if there are any remaining sessions for the team
+        const remainingSessions = await db.query("SELECT COUNT(*) FROM Sessions WHERE team_id = $1", [teamId]);
+        if (parseInt(remainingSessions.rows[0].count, 10) === 0) {
+            // Delete the team if no sessions remain
+            await db.query("DELETE FROM Teams WHERE id = $1", [teamId]);
+            await db.query("DELETE FROM TeamMembers WHERE team_id = $1", [teamId]);
+        }
+
+        // Commit transaction
+        await db.query('COMMIT');
+
+        res.json({ message: "Session and associated team (if no sessions remain) deleted successfully" });
     } catch (err) {
+        // Rollback on error
+        await db.query('ROLLBACK');
         console.error('Session deletion failed:', err);
         res.status(500).json({ error: err.message });
     }
