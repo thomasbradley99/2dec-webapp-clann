@@ -1,5 +1,3 @@
-const { Pool } = require('pg');
-
 require('dotenv').config();
 const { Pool } = require('pg');
 
@@ -17,14 +15,11 @@ async function checkCompanyUser() {
         const result = await pool.query(`
             SELECT id, email, role, created_at 
             FROM Users 
-            WHERE email = 'thomas@clann.coach'
+            WHERE role = 'COMPANY_MEMBER'
         `);
         
-        if (result.rows.length > 0) {
-            console.log('Company user exists:', result.rows[0]);
-        } else {
-            console.log('Company user not found');
-        }
+        console.log('\nCompany Users:');
+        console.table(result.rows);
     } catch (err) {
         console.error('Check failed:', err);
     } finally {

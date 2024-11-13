@@ -1,9 +1,6 @@
 require('dotenv').config();
 const { Pool } = require('pg');
 
-require('dotenv').config();
-const { Pool } = require('pg');
-
 const pool = new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
@@ -29,7 +26,6 @@ async function checkAnalysisData() {
         
         console.log('\nCurrent Analysis Data:');
         console.table(analysis.rows);
-
     } catch (err) {
         console.error('Check failed:', err);
     } finally {

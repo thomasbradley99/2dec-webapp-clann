@@ -1,5 +1,3 @@
-const { Pool } = require('pg');
-
 require('dotenv').config();
 const { Pool } = require('pg');
 
@@ -14,28 +12,28 @@ const pool = new Pool({
 
 async function checkTableStructure() {
     try {
-        // Get table columns for Sessions
-        const sessionsColumns = await pool.query(`
-            SELECT column_name, data_type, column_default, is_nullable
-            FROM information_schema.columns
-            WHERE table_name = 'sessions'
-            ORDER BY ordinal_position;
+        // Get all tables
+        const tables = await pool.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public';
         `);
         
-        console.log('\nSessions Table Structure:');
-        console.table(sessionsColumns.rows);
+        console.log('\nAll Tables:');
+        console.table(tables.rows);
 
-        // Get table columns for Analysis
-        const analysisColumns = await pool.query(`
-            SELECT column_name, data_type, column_default, is_nullable
-            FROM information_schema.columns
-            WHERE table_name = 'analysis'
-            ORDER BY ordinal_position;
-        `);
-        
-        console.log('\nAnalysis Table Structure:');
-        console.table(analysisColumns.rows);
-
+        // Get columns for each table
+        for (let table of tables.rows) {
+            const columns = await pool.query(`
+                SELECT column_name, data_type, is_nullable
+                FROM information_schema.columns
+                WHERE table_name = $1
+                ORDER BY ordinal_position;
+            `, [table.table_name]);
+            
+            console.log(`\n${table.table_name} Structure:`);
+            console.table(columns.rows);
+        }
     } catch (err) {
         console.error('Check failed:', err);
     } finally {

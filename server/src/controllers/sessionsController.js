@@ -26,6 +26,16 @@ const upload = multer({
 
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
+
+    // Add validation
+    if (!footage_url?.trim()) {
+        return res.status(400).json({ error: 'Game footage URL is required' });
+    }
+
+    if (!team_name?.trim()) {
+        return res.status(400).json({ error: 'Team name is required' });
+    }
+
     try {
         // Start transaction
         await db.query('BEGIN');

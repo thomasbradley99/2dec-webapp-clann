@@ -16,8 +16,26 @@ function Sessions() {
     setIsLoading(true);
     setFeedback(null);
     
+    if (!url.trim()) {
+      setFeedback({
+        type: 'error',
+        message: 'Please enter a game footage URL'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (!teamName.trim()) {
+      setFeedback({
+        type: 'error',
+        message: 'Please enter a team name'
+      });
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const response = await sessionService.createSession(url, teamName);
+      const response = await sessionService.createSession(url.trim(), teamName.trim());
       setFeedback({
         type: 'success',
         message: `Success! Your team code is: ${response.team_code}`,
@@ -116,15 +134,19 @@ function Sessions() {
             />
             <button 
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || !url.trim() || !teamName.trim()}
               style={{
                 width: '100%',
                 padding: '10px',
-                backgroundColor: isLoading ? '#014422' : '#016F33',
+                backgroundColor: isLoading || !url.trim() || !teamName.trim() 
+                  ? '#014422' 
+                  : '#016F33',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
-                cursor: isLoading ? 'not-allowed' : 'pointer'
+                cursor: isLoading || !url.trim() || !teamName.trim() 
+                  ? 'not-allowed' 
+                  : 'pointer'
               }}
             >
               {isLoading ? 'Uploading...' : 'Upload Game'}

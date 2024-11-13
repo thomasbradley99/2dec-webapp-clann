@@ -1,5 +1,3 @@
-const { Pool } = require('pg');
-
 require('dotenv').config();
 const { Pool } = require('pg');
 
@@ -30,7 +28,6 @@ async function checkSessionsData() {
         
         console.log('\nCurrent Sessions Data:');
         console.table(sessions.rows);
-
     } catch (err) {
         console.error('Check failed:', err);
     } finally {
