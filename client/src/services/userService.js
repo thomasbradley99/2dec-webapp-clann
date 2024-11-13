@@ -1,28 +1,33 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:3001/api';
+import api from './api';
 
 const userService = {
     async validateUser(email, password) {
         try {
-            const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-            console.log('Login response:', response.data);
+            const response = await api.post('/auth/login', { email, password });
+            // Store token and user data
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data));
             return response.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.error || 'Login failed';
-            throw new Error(errorMessage);
+            throw new Error(error.response?.data?.error || 'Login failed');
         }
     },
 
     async createUser(email, password) {
         try {
-            const response = await axios.post(`${API_URL}/auth/register`, { email, password });
-            console.log('Register response:', response.data);
+            const response = await api.post('/auth/register', { email, password });
+            // Store token and user data
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data));
             return response.data;
         } catch (error) {
-            const errorMessage = error.response?.data?.error || 'Registration failed';
-            throw new Error(errorMessage);
+            throw new Error(error.response?.data?.error || 'Registration failed');
         }
+    },
+
+    logout() {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
     }
 };
 
