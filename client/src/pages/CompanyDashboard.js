@@ -11,7 +11,7 @@ function CompanyDashboard() {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [selectedSession, setSelectedSession] = useState(null);
+    const [expandedSession, setExpandedSession] = useState(null);
     const [analysisDescription, setAnalysisDescription] = useState('');
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
@@ -89,7 +89,7 @@ function CompanyDashboard() {
             setSelectedFile(null);
             setPreviewUrl(null);
             setAnalysisDescription('');
-            setSelectedSession(null);
+            setExpandedSession(null);
             fetchSessions();
         } catch (err) {
             console.error('Upload error details:', {
@@ -101,18 +101,38 @@ function CompanyDashboard() {
         }
     };
 
-    const handleToggleStatus = async (sessionId) => {
+    const handleSessionClick = (sessionId) => {
+        setExpandedSession(expandedSession === sessionId ? null : sessionId);
+        if (expandedSession === sessionId) {
+            setSelectedFile(null);
+            setPreviewUrl(null);
+            setAnalysisDescription('');
+        }
+    };
+
+    const handleToggleStatus = async (sessionId, currentStatus) => {
         try {
-            const updatedSession = await sessionService.toggleSessionStatus(sessionId);
-            
-            setSessions(prevSessions => prevSessions.map(session => 
-                session.id === sessionId 
-                    ? { ...session, status: updatedSession.status }
-                    : session
-            ));
-        } catch (error) {
-            console.error('Error toggling status:', error);
-            alert('Failed to toggle status: ' + error.message);
+            await sessionService.toggleSessionStatus(sessionId);
+            fetchSessions();
+        } catch (err) {
+            setError('Failed to update status');
+            console.error('Error:', err);
+        }
+    };
+
+    const handleDeleteAnalysis = async (analysisId) => {
+        if (window.confirm('Are you sure you want to delete this analysis?')) {
+            try {
+                await axios.delete(`http://localhost:3001/api/sessions/analysis/${analysisId}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${user.token}`
+                    }
+                });
+                fetchSessions();
+            } catch (err) {
+                setError('Failed to delete analysis');
+                console.error('Error:', err);
+            }
         }
     };
 
@@ -123,175 +143,223 @@ function CompanyDashboard() {
             color: '#ffffff',
             paddingBottom: '80px'
         }}>
-            <div style={{ padding: '20px' }}>
+            <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
                 <h2>Company Dashboard</h2>
                 
                 {loading && <p>Loading sessions...</p>}
                 {error && <p style={{ color: '#FF6B35' }}>{error}</p>}
 
-                {selectedSession && (
-                    <div style={{
-                        backgroundColor: '#333333',
-                        padding: '20px',
-                        borderRadius: '8px',
-                        marginBottom: '20px'
-                    }}>
-                        <h3>Add Analysis</h3>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                            style={{ marginBottom: '10px' }}
-                        />
-                        {previewUrl && (
-                            <img 
-                                src={previewUrl} 
-                                alt="Preview" 
-                                style={{ 
-                                    maxWidth: '300px', 
-                                    marginBottom: '10px',
-                                    display: 'block'
-                                }} 
-                            />
-                        )}
-                        <textarea
-                            value={analysisDescription}
-                            onChange={(e) => setAnalysisDescription(e.target.value)}
-                            placeholder="Analysis description..."
-                            style={{
-                                width: '100%',
-                                padding: '8px',
-                                marginBottom: '10px',
-                                backgroundColor: '#444444',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '4px'
-                            }}
-                        />
-                        <div>
-                            <button
-                                onClick={() => handleAnalysisSubmit(selectedSession)}
-                                style={{
-                                    backgroundColor: '#1A5F7A',
-                                    color: 'white',
-                                    padding: '8px 16px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    marginRight: '10px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Submit Analysis
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setSelectedSession(null);
-                                    setSelectedFile(null);
-                                    setPreviewUrl(null);
-                                    setAnalysisDescription('');
-                                }}
-                                style={{
-                                    backgroundColor: '#444444',
-                                    color: 'white',
-                                    padding: '8px 16px',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer'
-                                }}
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                )}
-                
                 <div style={{ 
-                    backgroundColor: '#333333', 
-                    padding: '20px', 
-                    borderRadius: '8px',
-                    marginTop: '20px'
+                    display: 'grid',
+                    gap: '20px',
                 }}>
-                    <h3>All Sessions</h3>
                     {sessions.map(session => (
                         <div 
                             key={session.id} 
                             style={{
-                                backgroundColor: '#444444',
-                                padding: '15px',
-                                marginBottom: '10px',
-                                borderRadius: '4px'
+                                backgroundColor: '#333333',
+                                borderRadius: '8px',
+                                overflow: 'hidden'
                             }}
                         >
-                            <p><strong>Team:</strong> {session.team_name}</p>
-                            <p>
-                                <strong>Status:</strong> {session.status}
-                                <button 
-                                    onClick={() => handleToggleStatus(session.id)}
-                                    style={{
-                                        marginLeft: '10px',
-                                        padding: '5px 10px',
-                                        backgroundColor: session.status === 'PENDING' ? '#4CAF50' : '#f44336',
-                                        color: 'white',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Toggle Status
-                                </button>
-                            </p>
-                            <p><strong>Uploaded By:</strong> {session.uploaded_by_email}</p>
-                            <p><strong>Date:</strong> {new Date(session.created_at).toLocaleDateString()}</p>
-                            <a 
-                                href={session.footage_url} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                style={{ color: '#86C6E3' }}
+                            <div 
+                                onClick={() => handleSessionClick(session.id)}
+                                style={{
+                                    padding: '20px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    borderBottom: expandedSession === session.id ? '1px solid #444' : 'none'
+                                }}
                             >
-                                View Footage
-                            </a>
-
-                            {session.analyses && session.analyses.length > 0 && (
-                                <div style={{ marginTop: '15px' }}>
-                                    <h4>Analyses:</h4>
-                                    {session.analyses.map(analysis => (
-                                        <div key={analysis.id} style={{ 
-                                            marginBottom: '10px', 
-                                            padding: '10px', 
-                                            backgroundColor: '#555555',
-                                            borderRadius: '4px'
-                                        }}>
-                                            <img 
-                                                src={analysis.image_url} 
-                                                alt="Analysis" 
-                                                style={{ 
-                                                    maxWidth: '100%', 
-                                                    marginBottom: '10px',
-                                                    borderRadius: '4px'
-                                                }} 
-                                            />
-                                            <p><strong>Description:</strong> {analysis.description}</p>
-                                            <p><strong>Analyst:</strong> {analysis.analyst_email}</p>
-                                        </div>
-                                    ))}
+                                <div>
+                                    <h3 style={{ margin: '0 0 10px 0' }}>{session.team_name}</h3>
+                                    <p style={{ margin: '0', color: '#888' }}>
+                                        Uploaded by {session.uploaded_by_email} on {new Date(session.created_at).toLocaleDateString()}
+                                    </p>
                                 </div>
-                            )}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                    <span style={{ 
+                                        color: session.status === 'PENDING' ? '#ff4444' : '#4CAF50',
+                                        fontWeight: 'bold'
+                                    }}>
+                                        {session.status}
+                                    </span>
+                                    <span style={{ transform: expandedSession === session.id ? 'rotate(180deg)' : 'none' }}>
+                                        ▼
+                                    </span>
+                                </div>
+                            </div>
 
-                            {session.status === 'PENDING' && (
-                                <button
-                                    onClick={() => setSelectedSession(session.id)}
-                                    style={{
-                                        backgroundColor: '#1A5F7A',
-                                        color: 'white',
-                                        padding: '8px 16px',
-                                        border: 'none',
-                                        borderRadius: '4px',
-                                        marginTop: '10px',
-                                        cursor: 'pointer'
-                                    }}
-                                >
-                                    Add Analysis
-                                </button>
+                            {expandedSession === session.id && (
+                                <div style={{ padding: '20px' }}>
+                                    <a 
+                                        href={session.footage_url} 
+                                        target="_blank" 
+                                        rel="noopener noreferrer"
+                                        style={{ 
+                                            color: '#86C6E3',
+                                            display: 'inline-block',
+                                            marginBottom: '20px'
+                                        }}
+                                    >
+                                        📹 Game Footage
+                                    </a>
+
+                                    <div style={{ marginBottom: '20px' }}>
+                                        <h4>ANALYSIS</h4>
+                                        <div style={{ 
+                                            backgroundColor: '#444444',
+                                            padding: '20px',
+                                            borderRadius: '4px',
+                                            position: 'relative'
+                                        }}>
+                                            {session.analyses && session.analyses.length > 0 ? (
+                                                <>
+                                                    <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                                        <button
+                                                            onClick={() => handleDeleteAnalysis(session.analyses[0].id)}
+                                                            style={{
+                                                                backgroundColor: '#FF4444',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                padding: '5px 10px',
+                                                                cursor: 'pointer',
+                                                                marginRight: '10px'
+                                                            }}
+                                                        >
+                                                            Remove
+                                                        </button>
+                                                        <label
+                                                            style={{
+                                                                backgroundColor: '#1A5F7A',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                padding: '5px 10px',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                        >
+                                                            Replace
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={handleFileSelect}
+                                                                style={{ display: 'none' }}
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                    <img 
+                                                        src={session.analyses[0].image_url} 
+                                                        alt="Heatmap" 
+                                                        style={{ 
+                                                            width: '100%',
+                                                            maxWidth: '500px',
+                                                            borderRadius: '4px',
+                                                            marginBottom: '20px'
+                                                        }} 
+                                                    />
+                                                </>
+                                            ) : (
+                                                <div style={{ 
+                                                    textAlign: 'center', 
+                                                    padding: '40px 20px' 
+                                                }}>
+                                                    <label
+                                                        style={{
+                                                            backgroundColor: '#1A5F7A',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            padding: '10px 20px',
+                                                            cursor: 'pointer'
+                                                        }}
+                                                    >
+                                                        Upload New Image
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleFileSelect}
+                                                            style={{ display: 'none' }}
+                                                        />
+                                                    </label>
+                                                </div>
+                                            )}
+
+                                            {previewUrl && (
+                                                <img 
+                                                    src={previewUrl} 
+                                                    alt="Preview" 
+                                                    style={{ 
+                                                        width: '100%',
+                                                        maxWidth: '500px',
+                                                        borderRadius: '4px',
+                                                        marginBottom: '20px'
+                                                    }} 
+                                                />
+                                            )}
+
+                                            <div>
+                                                <p style={{ marginBottom: '10px', color: '#888' }}>Description:</p>
+                                                <textarea
+                                                    value={analysisDescription || (session.analyses?.[0]?.description || '')}
+                                                    onChange={(e) => setAnalysisDescription(e.target.value)}
+                                                    style={{
+                                                        width: '100%',
+                                                        padding: '10px',
+                                                        backgroundColor: '#333333',
+                                                        color: 'white',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        minHeight: '80px',
+                                                        marginBottom: '15px'
+                                                    }}
+                                                />
+                                            </div>
+
+                                            {session.analyses?.[0] && (
+                                                <p style={{ color: '#888', margin: '10px 0' }}>
+                                                    Analyst: {session.analyses[0].analyst_email}
+                                                </p>
+                                            )}
+
+                                            {(selectedFile || analysisDescription !== session.analyses?.[0]?.description) && (
+                                                <button
+                                                    onClick={() => handleAnalysisSubmit(session.id)}
+                                                    style={{
+                                                        backgroundColor: '#1A5F7A',
+                                                        color: 'white',
+                                                        padding: '10px 20px',
+                                                        border: 'none',
+                                                        borderRadius: '4px',
+                                                        cursor: 'pointer',
+                                                        marginTop: '10px'
+                                                    }}
+                                                >
+                                                    Save Changes
+                                                </button>
+                                            )}
+
+                                            <button
+                                                onClick={() => handleToggleStatus(session.id, session.status)}
+                                                style={{
+                                                    backgroundColor: session.status === 'PENDING' ? '#4CAF50' : '#FF4444',
+                                                    color: 'white',
+                                                    padding: '10px 20px',
+                                                    border: 'none',
+                                                    borderRadius: '4px',
+                                                    cursor: 'pointer',
+                                                    marginTop: '20px',
+                                                    width: '100%'
+                                                }}
+                                            >
+                                                Toggle Status: {session.status === 'PENDING' ? 'PENDING ⇄ REVIEWED' : 'REVIEWED ⇄ PENDING'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ))}
