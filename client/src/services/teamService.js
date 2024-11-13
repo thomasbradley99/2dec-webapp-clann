@@ -40,6 +40,15 @@ const teamService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to fetch team members');
         }
+    },
+
+    async removeTeamMember(teamId, userId) {
+        try {
+            const response = await api.delete(`/teams/${teamId}/members/${userId}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to remove team member');
+        }
     }
 };
 

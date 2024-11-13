@@ -136,4 +136,35 @@ exports.getTeamMembers = async (req, res) => {
         console.error('Get team members error:', err);
         res.status(500).json({ error: 'Failed to get team members' });
     }
+};
+
+exports.removeTeamMember = async (req, res) => {
+    const { teamId, userId: memberToRemoveId } = req.params;
+    const requestingUserId = req.user.id;
+
+    try {
+        // Check if requesting user is admin
+        const adminCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, requestingUserId]
+        );
+
+        if (!adminCheck.rows[0]?.is_admin) {
+            return res.status(403).json({ error: 'Only team admins can remove members' });
+        }
+
+        // Remove the member
+        await db.query(
+            `DELETE FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, memberToRemoveId]
+        );
+
+        res.json({ message: 'Member removed successfully' });
+    } catch (err) {
+        console.error('Remove team member error:', err);
+        res.status(500).json({ error: 'Failed to remove team member' });
+    }
 }; 

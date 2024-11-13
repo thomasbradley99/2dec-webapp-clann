@@ -13,6 +13,7 @@ function Profile() {
     const [selectedTeam, setSelectedTeam] = useState(null);
     const [teamMembers, setTeamMembers] = useState([]);
     const [membersLoading, setMembersLoading] = useState(false);
+    const [feedback, setFeedback] = useState(null);
 
     useEffect(() => {
         const userData = JSON.parse(localStorage.getItem('user'));
@@ -172,17 +173,54 @@ function Profile() {
                                                                 borderBottom: index !== teamMembers.length - 1 ? '1px solid #333' : 'none'
                                                             }}
                                                         >
-                                                            <span>{member.email}</span>
-                                                            {member.is_admin && (
-                                                                <span style={{ 
-                                                                    color: '#016F33',
-                                                                    fontSize: '12px',
-                                                                    padding: '2px 6px',
-                                                                    borderRadius: '4px',
-                                                                    border: '1px solid #016F33'
-                                                                }}>
-                                                                    Admin
-                                                                </span>
+                                                            <div>
+                                                                <span>{member.email}</span>
+                                                                {member.is_admin && (
+                                                                    <span style={{ 
+                                                                        color: '#016F33',
+                                                                        fontSize: '12px',
+                                                                        padding: '2px 6px',
+                                                                        marginLeft: '10px',
+                                                                        borderRadius: '4px',
+                                                                        border: '1px solid #016F33'
+                                                                    }}>
+                                                                        Admin
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {/* Only show remove button if current user is admin and not for themselves */}
+                                                            {team.is_admin && member.id !== user.id && (
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        if (window.confirm(`Are you sure you want to remove ${member.email} from the team?`)) {
+                                                                            try {
+                                                                                await teamService.removeTeamMember(team.id, member.id);
+                                                                                setFeedback({
+                                                                                    type: 'success',
+                                                                                    message: 'Member removed successfully'
+                                                                                });
+                                                                                // Refresh member list
+                                                                                fetchTeamMembers(team.id);
+                                                                            } catch (err) {
+                                                                                setFeedback({
+                                                                                    type: 'error',
+                                                                                    message: err.message
+                                                                                });
+                                                                            }
+                                                                        }
+                                                                    }}
+                                                                    style={{
+                                                                        background: 'none',
+                                                                        border: '1px solid #FF4444',
+                                                                        color: '#FF4444',
+                                                                        padding: '2px 8px',
+                                                                        borderRadius: '4px',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '12px'
+                                                                    }}
+                                                                >
+                                                                    Remove
+                                                                </button>
                                                             )}
                                                         </div>
                                                     ))}
@@ -249,6 +287,17 @@ function Profile() {
                 >
                     Delete Account
                 </button>
+
+                {feedback && (
+                    <div style={{
+                        padding: '10px',
+                        marginTop: '10px',
+                        backgroundColor: feedback.type === 'success' ? '#016F33' : '#FF4444',
+                        borderRadius: '4px'
+                    }}>
+                        {feedback.message}
+                    </div>
+                )}
             </div>
             <NavBar />
         </div>
