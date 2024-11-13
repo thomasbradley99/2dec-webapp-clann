@@ -15,6 +15,12 @@ app.use(express.json());
 // Add this line to serve the uploads directory
 app.use('/analysis-images', express.static(path.join(__dirname, '../public/analysis-images')));
 
+// Middleware to log all incoming requests
+app.use((req, res, next) => {
+    console.log(`Incoming request: ${req.method} ${req.url}`);
+    next();
+});
+
 // Routes
 app.use('/api/auth', authRoutes);        // Handle login/register
 app.use('/api/sessions', sessionsRoutes); // Handle game sessions
@@ -22,8 +28,8 @@ app.use('/api/teams', teamsRoutes);      // Add this
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something broke!' });
+    console.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 const PORT = process.env.PORT || 3001;

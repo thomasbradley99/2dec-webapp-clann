@@ -44,9 +44,20 @@ const sessionService = {
         }
     },
 
-    async joinTeam(teamCode) {
+    async toggleSessionStatus(sessionId) {
         try {
-            const response = await api.post('/teams/join', { team_code: teamCode });
+            const response = await api.put(`/sessions/${sessionId}/toggle-status`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to toggle session status');
+        }
+    },
+
+    async joinTeam(team_code) {
+        try {
+            const response = await api.post('/teams/join', {
+                team_code
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to join team');

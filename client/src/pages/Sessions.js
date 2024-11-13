@@ -42,6 +42,17 @@ function Sessions() {
       return;
     }
 
+    // Check if URL already exists in current sessions
+    const urlExists = sessions.some(session => session.footage_url === url.trim());
+    if (urlExists) {
+      setFeedback({
+        type: 'error',
+        message: 'This footage URL has already been uploaded'
+      });
+      setIsLoading(false);
+      return;
+    }
+
     if (!teamName.trim()) {
       setFeedback({
         type: 'error',

@@ -38,6 +38,16 @@ exports.createSession = async (req, res) => {
     }
 
     try {
+        // Check if URL already exists
+        const existingUrl = await db.query(
+            'SELECT id FROM Sessions WHERE footage_url = $1',
+            [footage_url.trim()]
+        );
+
+        if (existingUrl.rows.length > 0) {
+            return res.status(400).json({ error: 'This footage URL has already been uploaded' });
+        }
+
         // Start transaction
         await db.query('BEGIN');
         
@@ -330,5 +340,60 @@ exports.addAnalysis = async (req, res) => {
     } catch (outerErr) {
         console.error('13. Outer error:', outerErr);
         res.status(500).json({ error: outerErr.message });
+    }
+};
+
+exports.toggleSessionStatus = async (req, res) => {
+    console.log('--- Toggle Session Status Request ---');
+    console.log('Method:', req.method);
+    console.log('URL:', req.originalUrl);
+    console.log('User:', req.user);
+    console.log('Session ID:', req.params.sessionId);
+
+    if (req.user.role !== 'COMPANY_MEMBER') {
+        console.log('Unauthorized attempt by user:', req.user.id);
+        return res.status(403).json({ error: 'Not authorized' });
+    }
+
+    const { sessionId } = req.params;
+    console.log('Session ID to toggle:', sessionId);
+
+    try {
+        // Check if the session exists
+        const currentStatusResult = await db.query(
+            'SELECT status FROM Sessions WHERE id = $1',
+            [sessionId]
+        );
+
+        if (currentStatusResult.rows.length === 0) {
+            console.log('Session not found:', sessionId);
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        const currentStatus = currentStatusResult.rows[0].status;
+        console.log('Current Status:', currentStatus);
+
+        // Toggle status
+        const newStatus = currentStatus === 'PENDING' ? 'REVIEWED' : 'PENDING';
+        console.log('New Status:', newStatus);
+
+        // Update the session status
+        const updateResult = await db.query(
+            `
+            UPDATE Sessions 
+            SET 
+                status = $1,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $2
+            RETURNING *
+            `,
+            [newStatus, sessionId]
+        );
+
+        console.log('Session updated:', updateResult.rows[0]);
+        res.json(updateResult.rows[0]);
+    } catch (error) {
+        console.error('Error toggling session status:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 }; 

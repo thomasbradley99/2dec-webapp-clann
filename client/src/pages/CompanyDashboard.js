@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import NavBar from '../components/NavBar';
+import sessionService from '../services/sessionService';
 
 const getUserFromStorage = () => JSON.parse(localStorage.getItem('user'));
 
@@ -97,6 +98,21 @@ function CompanyDashboard() {
                 status: err.response?.status
             });
             setError(err.response?.data?.error || 'Failed to add analysis');
+        }
+    };
+
+    const handleToggleStatus = async (sessionId) => {
+        try {
+            const updatedSession = await sessionService.toggleSessionStatus(sessionId);
+            
+            setSessions(prevSessions => prevSessions.map(session => 
+                session.id === sessionId 
+                    ? { ...session, status: updatedSession.status }
+                    : session
+            ));
+        } catch (error) {
+            console.error('Error toggling status:', error);
+            alert('Failed to toggle status: ' + error.message);
         }
     };
 
@@ -207,7 +223,23 @@ function CompanyDashboard() {
                             }}
                         >
                             <p><strong>Team:</strong> {session.team_name}</p>
-                            <p><strong>Status:</strong> {session.status}</p>
+                            <p>
+                                <strong>Status:</strong> {session.status}
+                                <button 
+                                    onClick={() => handleToggleStatus(session.id)}
+                                    style={{
+                                        marginLeft: '10px',
+                                        padding: '5px 10px',
+                                        backgroundColor: session.status === 'PENDING' ? '#4CAF50' : '#f44336',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Toggle Status
+                                </button>
+                            </p>
                             <p><strong>Uploaded By:</strong> {session.uploaded_by_email}</p>
                             <p><strong>Date:</strong> {new Date(session.created_at).toLocaleDateString()}</p>
                             <a 
