@@ -8,5 +8,7 @@ router.post("/create", auth, teamsController.createTeam);
 router.post('/join', auth, teamsController.joinTeam);
 router.get("/:teamId/members", auth, teamsController.getTeamMembers);
 router.delete("/:teamId/members/:userId", auth, teamsController.removeTeamMember);
+router.patch("/:teamId/members/:userId/promote", auth, teamsController.promoteToAdmin);
+router.patch("/:teamId/members/:userId/admin", auth, teamsController.toggleAdminStatus);
 
 module.exports = router;

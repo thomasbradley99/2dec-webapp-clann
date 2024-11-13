@@ -49,6 +49,15 @@ const teamService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to remove team member');
         }
+    },
+
+    async toggleAdminStatus(teamId, userId, isAdmin) {
+        try {
+            const response = await api.patch(`/teams/${teamId}/members/${userId}/admin`, { isAdmin });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to update admin status');
+        }
     }
 };
 

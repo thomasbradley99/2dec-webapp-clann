@@ -191,4 +191,69 @@ exports.removeTeamMember = async (req, res) => {
         console.error('Remove team member error:', err);
         res.status(500).json({ error: 'Failed to remove team member' });
     }
+};
+
+exports.promoteToAdmin = async (req, res) => {
+    const { teamId, userId: memberToPromoteId } = req.params;
+    const requestingUserId = req.user.id;
+
+    try {
+        // Check if requesting user is admin
+        const requestingUserCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, requestingUserId]
+        );
+
+        if (!requestingUserCheck.rows[0]?.is_admin) {
+            return res.status(403).json({ error: 'Only team admins can promote members' });
+        }
+
+        // Promote the member to admin
+        await db.query(
+            `UPDATE TeamMembers 
+             SET is_admin = true 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, memberToPromoteId]
+        );
+
+        res.json({ message: 'Member promoted to admin successfully' });
+    } catch (err) {
+        console.error('Promote to admin error:', err);
+        res.status(500).json({ error: 'Failed to promote member to admin' });
+    }
+};
+
+exports.toggleAdminStatus = async (req, res) => {
+    const { teamId, userId: memberId } = req.params;
+    const { isAdmin } = req.body;
+    const requestingUserId = req.user.id;
+
+    try {
+        // Check if requesting user is admin
+        const requestingUserCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, requestingUserId]
+        );
+
+        if (!requestingUserCheck.rows[0]?.is_admin) {
+            return res.status(403).json({ error: 'Only team admins can change admin status' });
+        }
+
+        // Update admin status
+        await db.query(
+            `UPDATE TeamMembers 
+             SET is_admin = $1 
+             WHERE team_id = $2 AND user_id = $3`,
+            [isAdmin, teamId, memberId]
+        );
+
+        res.json({ message: 'Admin status updated successfully' });
+    } catch (err) {
+        console.error('Toggle admin status error:', err);
+        res.status(500).json({ error: 'Failed to update admin status' });
+    }
 }; 

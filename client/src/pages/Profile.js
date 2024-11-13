@@ -94,9 +94,6 @@ function Profile() {
                 }}>
                     <p style={{ color: '#888888' }}>Email</p>
                     <p style={{ marginTop: '5px' }}>{user?.email || 'Loading...'}</p>
-                    
-                    <p style={{ color: '#888888', marginTop: '20px' }}>Role</p>
-                    <p style={{ marginTop: '5px' }}>{user?.role || 'Loading...'}</p>
                 </div>
 
                 {/* Teams Section */}
@@ -133,6 +130,13 @@ function Profile() {
                                         marginTop: '5px'
                                     }}>
                                         Team Code: {team.team_code}
+                                    </p>
+                                    <p style={{ 
+                                        color: '#888888', 
+                                        fontSize: '14px',
+                                        marginTop: '5px'
+                                    }}>
+                                        Role: {team.is_admin ? 'Admin' : 'Member'}
                                     </p>
                                     
                                     {/* View Members Button */}
@@ -185,57 +189,65 @@ function Profile() {
                                                         >
                                                             <div>
                                                                 <span>{member.email}</span>
-                                                                {member.is_admin && (
-                                                                    <span style={{ 
-                                                                        color: '#016F33',
-                                                                        fontSize: '12px',
-                                                                        padding: '2px 6px',
-                                                                        marginLeft: '10px',
-                                                                        borderRadius: '4px',
-                                                                        border: '1px solid #016F33'
-                                                                    }}>
-                                                                        Admin
-                                                                    </span>
+                                                            </div>
+                                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                                {/* Admin Toggle */}
+                                                                {team.is_admin && member.id !== user.id && (
+                                                                    <label style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}>
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={member.is_admin}
+                                                                            onChange={async () => {
+                                                                                try {
+                                                                                    await teamService.toggleAdminStatus(team.id, member.id, !member.is_admin);
+                                                                                    setFeedback({ type: 'success', message: 'Admin status updated successfully' });
+                                                                                    fetchTeamMembers(team.id);
+                                                                                } catch (err) {
+                                                                                    setFeedback({ type: 'error', message: err.message });
+                                                                                }
+                                                                            }}
+                                                                            style={{ marginRight: '5px' }}
+                                                                        />
+                                                                        <span>Admin</span>
+                                                                    </label>
+                                                                )}
+                                                                {/* Remove Button */}
+                                                                {team.is_admin && member.id !== user.id && (
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            if (window.confirm(`Are you sure you want to remove ${member.email} from the team?`)) {
+                                                                                setRemovingMember(member.id);
+                                                                                try {
+                                                                                    await teamService.removeTeamMember(team.id, member.id);
+                                                                                    setFeedback({
+                                                                                        type: 'success',
+                                                                                        message: 'Member removed successfully'
+                                                                                    });
+                                                                                    fetchTeamMembers(team.id);
+                                                                                } catch (err) {
+                                                                                    setFeedback({
+                                                                                        type: 'error',
+                                                                                        message: err.message
+                                                                                    });
+                                                                                } finally {
+                                                                                    setRemovingMember(null);
+                                                                                }
+                                                                            }
+                                                                        }}
+                                                                        style={{
+                                                                            background: 'none',
+                                                                            border: '1px solid #FF4444',
+                                                                            color: '#FF4444',
+                                                                            padding: '2px 8px',
+                                                                            borderRadius: '4px',
+                                                                            cursor: 'pointer',
+                                                                            fontSize: '12px'
+                                                                        }}
+                                                                    >
+                                                                        {removingMember === member.id ? 'Removing...' : 'Remove from Team'}
+                                                                    </button>
                                                                 )}
                                                             </div>
-                                                            {/* Only show remove button if current user is admin and not for themselves */}
-                                                            {team.is_admin && member.id !== user.id && (
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (window.confirm(`Are you sure you want to remove ${member.email} from the team?`)) {
-                                                                            setRemovingMember(member.id);
-                                                                            try {
-                                                                                await teamService.removeTeamMember(team.id, member.id);
-                                                                                setFeedback({
-                                                                                    type: 'success',
-                                                                                    message: 'Member removed successfully'
-                                                                                });
-                                                                                // Refresh member list
-                                                                                fetchTeamMembers(team.id);
-                                                                            } catch (err) {
-                                                                                setFeedback({
-                                                                                    type: 'error',
-                                                                                    message: err.message
-                                                                                });
-                                                                            } finally {
-                                                                                setRemovingMember(null);
-                                                                            }
-                                                                        }
-                                                                    }}
-                                                                    style={{
-                                                                        background: 'none',
-                                                                        border: '1px solid #FF4444',
-                                                                        color: '#FF4444',
-                                                                        padding: '2px 8px',
-                                                                        borderRadius: '4px',
-                                                                        cursor: 'pointer',
-                                                                        fontSize: '12px',
-                                                                        disabled: removingMember === member.id
-                                                                    }}
-                                                                >
-                                                                    {removingMember === member.id ? 'Removing...' : 'Remove'}
-                                                                </button>
-                                                            )}
                                                         </div>
                                                     ))}
                                                 </div>
