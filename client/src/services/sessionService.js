@@ -62,6 +62,15 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to join team');
         }
+    },
+
+    async deleteAnalysis(analysisId) {
+        try {
+            const response = await api.delete(`/sessions/analysis/${analysisId}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to delete analysis');
+        }
     }
 };
 

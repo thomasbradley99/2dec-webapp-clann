@@ -123,11 +123,7 @@ function CompanyDashboard() {
     const handleDeleteAnalysis = async (analysisId) => {
         if (window.confirm('Are you sure you want to delete this analysis?')) {
             try {
-                await axios.delete(`http://localhost:3001/api/sessions/analysis/${analysisId}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${user.token}`
-                    }
-                });
+                await sessionService.deleteAnalysis(analysisId);
                 fetchSessions();
             } catch (err) {
                 setError('Failed to delete analysis');
@@ -252,7 +248,7 @@ function CompanyDashboard() {
                                                         </label>
                                                     </div>
                                                     <img 
-                                                        src={session.analyses[0].image_url} 
+                                                        src={`http://localhost:3001${session.analyses[0].image_url}`} 
                                                         alt="Heatmap" 
                                                         style={{ 
                                                             width: '100%',
