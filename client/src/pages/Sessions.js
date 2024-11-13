@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import sessionService from '../services/sessionService';
 import NavBar from '../components/NavBar';
+import axios from 'axios';
 
 function Sessions() {
   const [url, setUrl] = useState('');
@@ -49,19 +50,26 @@ function Sessions() {
 
   const handleDelete = async (sessionId) => {
     if (window.confirm('Are you sure you want to delete this session?')) {
-      try {
-        await sessionService.deleteSession(sessionId);
-        setFeedback({
-          type: 'success',
-          message: 'Session deleted successfully'
-        });
-        fetchSessions();
-      } catch (err) {
-        setFeedback({
-          type: 'error',
-          message: err.message || 'Failed to delete session'
-        });
-      }
+        try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            await axios.delete(`http://localhost:3001/api/sessions/${sessionId}`, {
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'user-id': user.id
+                }
+            });
+            setFeedback({
+                type: 'success',
+                message: 'Session deleted successfully'
+            });
+            fetchSessions();
+        } catch (err) {
+            console.error('Delete error:', err.response?.data || err.message);
+            setFeedback({
+                type: 'error',
+                message: err.response?.data?.error || 'Failed to delete session'
+            });
+        }
     }
   };
 

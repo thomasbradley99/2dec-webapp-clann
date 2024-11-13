@@ -34,11 +34,14 @@ const sessionService = {
     },
 
     deleteSession: async (sessionId) => {
-        try {
-            await axios.delete(`${API_URL}/sessions/${sessionId}`, getHeaders());
-        } catch (error) {
-            throw error.response?.data?.error || 'Failed to delete session';
-        }
+        const user = JSON.parse(localStorage.getItem('user'));
+        const response = await axios.delete(`${API_URL}/sessions/${sessionId}`, {
+            headers: {
+                'Authorization': `Bearer ${user.token}`,
+                'user-id': user.id
+            }
+        });
+        return response.data;
     }
 };
 

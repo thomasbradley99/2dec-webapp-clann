@@ -1,7 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import NavBar from '../components/NavBar';
+
+const getUserFromStorage = () => JSON.parse(localStorage.getItem('user'));
 
 function CompanyDashboard() {
     const navigate = useNavigate();
@@ -10,9 +12,10 @@ function CompanyDashboard() {
     const [error, setError] = useState(null);
     const [selectedSession, setSelectedSession] = useState(null);
     const [analysisDescription, setAnalysisDescription] = useState('');
-    const user = JSON.parse(localStorage.getItem('user'));
     const [selectedFile, setSelectedFile] = useState(null);
     const [previewUrl, setPreviewUrl] = useState(null);
+    
+    const user = useMemo(() => getUserFromStorage(), []);
 
     useEffect(() => {
         if (!user || user.role !== 'COMPANY_MEMBER') {
@@ -20,12 +23,15 @@ function CompanyDashboard() {
             return;
         }
         fetchSessions();
-    }, [navigate, user]);
+    }, [navigate]);
 
     const fetchSessions = async () => {
         try {
             const response = await axios.get('http://localhost:3001/api/sessions/all', {
-                headers: { 'user-id': user.id }
+                headers: { 
+                    'Authorization': `Bearer ${user.token}`,
+                    'user-id': user.id
+                }
             });
             setSessions(response.data);
         } catch (err) {
@@ -40,7 +46,6 @@ function CompanyDashboard() {
         const file = event.target.files[0];
         if (file) {
             setSelectedFile(file);
-            // Create preview URL
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewUrl(reader.result);
@@ -72,7 +77,7 @@ function CompanyDashboard() {
                 formData,
                 {
                     headers: { 
-                        'user-id': user.id,
+                        'Authorization': `Bearer ${user.token}`,
                         'Content-Type': 'multipart/form-data'
                     }
                 }
@@ -80,7 +85,6 @@ function CompanyDashboard() {
             
             console.log('Upload response:', response.data);
             
-            // Reset form and refresh sessions
             setSelectedFile(null);
             setPreviewUrl(null);
             setAnalysisDescription('');
@@ -108,6 +112,82 @@ function CompanyDashboard() {
                 
                 {loading && <p>Loading sessions...</p>}
                 {error && <p style={{ color: '#FF6B35' }}>{error}</p>}
+
+                {selectedSession && (
+                    <div style={{
+                        backgroundColor: '#333333',
+                        padding: '20px',
+                        borderRadius: '8px',
+                        marginBottom: '20px'
+                    }}>
+                        <h3>Add Analysis</h3>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileSelect}
+                            style={{ marginBottom: '10px' }}
+                        />
+                        {previewUrl && (
+                            <img 
+                                src={previewUrl} 
+                                alt="Preview" 
+                                style={{ 
+                                    maxWidth: '300px', 
+                                    marginBottom: '10px',
+                                    display: 'block'
+                                }} 
+                            />
+                        )}
+                        <textarea
+                            value={analysisDescription}
+                            onChange={(e) => setAnalysisDescription(e.target.value)}
+                            placeholder="Analysis description..."
+                            style={{
+                                width: '100%',
+                                padding: '8px',
+                                marginBottom: '10px',
+                                backgroundColor: '#444444',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px'
+                            }}
+                        />
+                        <div>
+                            <button
+                                onClick={() => handleAnalysisSubmit(selectedSession)}
+                                style={{
+                                    backgroundColor: '#1A5F7A',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    marginRight: '10px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Submit Analysis
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setSelectedSession(null);
+                                    setSelectedFile(null);
+                                    setPreviewUrl(null);
+                                    setAnalysisDescription('');
+                                }}
+                                style={{
+                                    backgroundColor: '#444444',
+                                    color: 'white',
+                                    padding: '8px 16px',
+                                    border: 'none',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                )}
                 
                 <div style={{ 
                     backgroundColor: '#333333', 
@@ -138,7 +218,33 @@ function CompanyDashboard() {
                             >
                                 View Footage
                             </a>
-                            
+
+                            {session.analyses && session.analyses.length > 0 && (
+                                <div style={{ marginTop: '15px' }}>
+                                    <h4>Analyses:</h4>
+                                    {session.analyses.map(analysis => (
+                                        <div key={analysis.id} style={{ 
+                                            marginBottom: '10px', 
+                                            padding: '10px', 
+                                            backgroundColor: '#555555',
+                                            borderRadius: '4px'
+                                        }}>
+                                            <img 
+                                                src={analysis.image_url} 
+                                                alt="Analysis" 
+                                                style={{ 
+                                                    maxWidth: '100%', 
+                                                    marginBottom: '10px',
+                                                    borderRadius: '4px'
+                                                }} 
+                                            />
+                                            <p><strong>Description:</strong> {analysis.description}</p>
+                                            <p><strong>Analyst:</strong> {analysis.analyst_email}</p>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
                             {session.status === 'PENDING' && (
                                 <button
                                     onClick={() => setSelectedSession(session.id)}
@@ -148,67 +254,12 @@ function CompanyDashboard() {
                                         padding: '8px 16px',
                                         border: 'none',
                                         borderRadius: '4px',
-                                        marginLeft: '10px',
+                                        marginTop: '10px',
                                         cursor: 'pointer'
                                     }}
                                 >
                                     Add Analysis
                                 </button>
-                            )}
-
-                            {selectedSession === session.id && (
-                                <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#555555' }}>
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        onChange={handleFileSelect}
-                                        style={{
-                                            marginBottom: '10px'
-                                        }}
-                                    />
-                                    
-                                    {previewUrl && (
-                                        <div style={{ marginBottom: '10px' }}>
-                                            <img 
-                                                src={previewUrl} 
-                                                alt="Analysis preview" 
-                                                style={{
-                                                    maxWidth: '200px',
-                                                    maxHeight: '200px',
-                                                    objectFit: 'contain'
-                                                }}
-                                            />
-                                        </div>
-                                    )}
-
-                                    <textarea
-                                        placeholder="Analysis Description"
-                                        value={analysisDescription}
-                                        onChange={(e) => setAnalysisDescription(e.target.value)}
-                                        style={{
-                                            width: '100%',
-                                            padding: '8px',
-                                            marginBottom: '10px',
-                                            backgroundColor: '#666666',
-                                            border: 'none',
-                                            color: 'white',
-                                            minHeight: '100px'
-                                        }}
-                                    />
-                                    <button
-                                        onClick={() => handleAnalysisSubmit(session.id)}
-                                        style={{
-                                            backgroundColor: '#016F33',
-                                            color: 'white',
-                                            padding: '8px 16px',
-                                            border: 'none',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer'
-                                        }}
-                                    >
-                                        Submit Analysis
-                                    </button>
-                                </div>
                             )}
                         </div>
                     ))}
@@ -219,4 +270,4 @@ function CompanyDashboard() {
     );
 }
 
-export default CompanyDashboard; 
+export default CompanyDashboard;
