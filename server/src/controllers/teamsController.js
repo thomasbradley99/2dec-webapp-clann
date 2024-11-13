@@ -1,5 +1,5 @@
 const db = require("../db");
-const MAX_TEAM_MEMBERS = 20;
+const { MAX_TEAM_MEMBERS } = require('../constants');
 
 exports.getUserTeams = async (req, res) => {
     const userId = req.user.id;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import sessionService from '../services/sessionService';
+import teamService from '../services/teamService';
 import NavBar from '../components/NavBar';
 
 function Sessions() {
@@ -9,6 +10,23 @@ function Sessions() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [teamCode, setTeamCode] = useState('');
+
+  useEffect(() => {
+    fetchSessions();
+    fetchUserTeams();
+  }, []);
+
+  const fetchUserTeams = async () => {
+    try {
+      const teams = await teamService.getUserTeams();
+      // If user has teams, pre-fill with most recent team name
+      if (teams.length > 0) {
+        setTeamName(teams[0].name);
+      }
+    } catch (err) {
+      console.error('Failed to fetch teams:', err);
+    }
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -114,10 +132,6 @@ function Sessions() {
         }
     }
   };
-
-  useEffect(() => {
-    fetchSessions();
-  }, []);
 
   return (
     <div style={{ 
