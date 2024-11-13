@@ -67,6 +67,18 @@ exports.joinTeam = async (req, res) => {
 
         const teamId = teamResult.rows[0].id;
 
+        // Check member count
+        const memberCountResult = await db.query(
+            'SELECT COUNT(*) as count FROM TeamMembers WHERE team_id = $1',
+            [teamId]
+        );
+
+        if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
+            return res.status(400).json({ 
+                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
+            });
+        }
+
         // Check if user is already a member
         const memberCheck = await db.query(
             `SELECT team_id 
@@ -137,15 +149,34 @@ exports.removeTeamMember = async (req, res) => {
 
     try {
         // Check if requesting user is admin
-        const adminCheck = await db.query(
+        const requestingUserCheck = await db.query(
             `SELECT is_admin 
              FROM TeamMembers 
              WHERE team_id = $1 AND user_id = $2`,
             [teamId, requestingUserId]
         );
 
-        if (!adminCheck.rows[0]?.is_admin) {
+        if (!requestingUserCheck.rows[0]?.is_admin) {
             return res.status(403).json({ error: 'Only team admins can remove members' });
+        }
+
+        // Check if member to remove is admin and count total admins
+        const adminCountCheck = await db.query(
+            `SELECT COUNT(*) as admin_count 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND is_admin = true`,
+            [teamId]
+        );
+
+        const memberToRemoveCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, memberToRemoveId]
+        );
+
+        if (adminCountCheck.rows[0].admin_count === 1 && memberToRemoveCheck.rows[0]?.is_admin) {
+            return res.status(400).json({ error: 'Cannot remove the last admin from the team' });
         }
 
         // Remove the member
