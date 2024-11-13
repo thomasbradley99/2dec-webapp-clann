@@ -31,6 +31,15 @@ const teamService = {
         } catch (error) {
             throw error.response?.data?.error || 'Failed to join team';
         }
+    },
+
+    async getTeamMembers(teamId) {
+        try {
+            const response = await api.get(`/teams/${teamId}/members`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch team members');
+        }
     }
 };
 

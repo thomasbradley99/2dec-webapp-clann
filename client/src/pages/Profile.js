@@ -10,6 +10,9 @@ function Profile() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
+    const [selectedTeam, setSelectedTeam] = useState(null);
+    const [teamMembers, setTeamMembers] = useState([]);
+    const [membersLoading, setMembersLoading] = useState(false);
 
     useEffect(() => {
         const userData = JSON.parse(localStorage.getItem('user'));
@@ -29,6 +32,18 @@ function Profile() {
             setError('Failed to load teams');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchTeamMembers = async (teamId) => {
+        setMembersLoading(true);
+        try {
+            const members = await teamService.getTeamMembers(teamId);
+            setTeamMembers(members);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setMembersLoading(false);
         }
     };
 
@@ -108,6 +123,73 @@ function Profile() {
                                     }}>
                                         Team Code: {team.team_code}
                                     </p>
+                                    
+                                    {/* View Members Button */}
+                                    <button
+                                        onClick={() => {
+                                            if (selectedTeam === team.id) {
+                                                setSelectedTeam(null);
+                                                setTeamMembers([]);
+                                            } else {
+                                                setSelectedTeam(team.id);
+                                                fetchTeamMembers(team.id);
+                                            }
+                                        }}
+                                        style={{
+                                            background: 'none',
+                                            border: '1px solid #016F33',
+                                            color: '#016F33',
+                                            padding: '5px 10px',
+                                            borderRadius: '4px',
+                                            marginTop: '10px',
+                                            cursor: 'pointer'
+                                        }}
+                                    >
+                                        {selectedTeam === team.id ? 'Hide Members' : 'View Members'}
+                                    </button>
+
+                                    {/* Members List */}
+                                    {selectedTeam === team.id && (
+                                        <div style={{ marginTop: '10px' }}>
+                                            {membersLoading ? (
+                                                <p>Loading members...</p>
+                                            ) : (
+                                                <div style={{ 
+                                                    marginTop: '10px',
+                                                    padding: '10px',
+                                                    backgroundColor: '#2a2a2a',
+                                                    borderRadius: '4px'
+                                                }}>
+                                                    <h4 style={{ marginBottom: '10px' }}>Team Members</h4>
+                                                    {teamMembers.map((member, index) => (
+                                                        <div 
+                                                            key={index}
+                                                            style={{
+                                                                padding: '5px',
+                                                                display: 'flex',
+                                                                justifyContent: 'space-between',
+                                                                alignItems: 'center',
+                                                                borderBottom: index !== teamMembers.length - 1 ? '1px solid #333' : 'none'
+                                                            }}
+                                                        >
+                                                            <span>{member.email}</span>
+                                                            {member.is_admin && (
+                                                                <span style={{ 
+                                                                    color: '#016F33',
+                                                                    fontSize: '12px',
+                                                                    padding: '2px 6px',
+                                                                    borderRadius: '4px',
+                                                                    border: '1px solid #016F33'
+                                                                }}>
+                                                                    Admin
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             ))}
                         </div>

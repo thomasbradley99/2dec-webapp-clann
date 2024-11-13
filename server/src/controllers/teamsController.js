@@ -98,4 +98,42 @@ exports.joinTeam = async (req, res) => {
         console.error('Join team error:', err);
         res.status(500).json({ error: 'Failed to join team' });
     }
+};
+
+exports.getTeamMembers = async (req, res) => {
+    const { teamId } = req.params;
+    const userId = req.user.id;
+
+    try {
+        // First verify user is a member of this team
+        const memberCheck = await db.query(
+            `SELECT team_id 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, userId]
+        );
+
+        if (memberCheck.rows.length === 0) {
+            return res.status(403).json({ error: 'Not authorized to view this team' });
+        }
+
+        // Get all team members with their roles
+        const members = await db.query(
+            `SELECT 
+                u.id,
+                u.email,
+                u.created_at,
+                tm.is_admin
+             FROM TeamMembers tm
+             JOIN Users u ON u.id = tm.user_id
+             WHERE tm.team_id = $1
+             ORDER BY u.created_at ASC`,
+            [teamId]
+        );
+
+        res.json(members.rows);
+    } catch (err) {
+        console.error('Get team members error:', err);
+        res.status(500).json({ error: 'Failed to get team members' });
+    }
 }; 
