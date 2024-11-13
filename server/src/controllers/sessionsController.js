@@ -40,7 +40,7 @@ exports.createSession = async (req, res) => {
         // Start transaction
         await db.query('BEGIN');
         
-        // Check if team already exists for this user
+        // Check if team exists for this user
         const existingTeam = await db.query(`
             SELECT t.* 
             FROM Teams t
@@ -54,6 +54,19 @@ exports.createSession = async (req, res) => {
             // Use existing team
             teamId = existingTeam.rows[0].id;
             teamCode = existingTeam.rows[0].team_code;
+
+            // Check member count for existing team
+            const memberCountResult = await db.query(
+                'SELECT COUNT(*) as count FROM TeamMembers WHERE team_id = $1',
+                [teamId]
+            );
+
+            if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
+                await db.query('ROLLBACK');
+                return res.status(400).json({ 
+                    error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
+                });
+            }
         } else {
             // Create new team
             teamId = uuidv4();

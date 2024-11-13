@@ -1,4 +1,5 @@
 const db = require("../db");
+const MAX_TEAM_MEMBERS = 20;
 
 exports.getUserTeams = async (req, res) => {
     const userId = req.user.id;
@@ -52,10 +53,11 @@ exports.joinTeam = async (req, res) => {
     const userId = req.user.id;
 
     try {
-        // Find the team by team code
-        const teamResult = await db.query(`
-            SELECT id FROM Teams WHERE team_code = $1
-        `, [team_code]);
+        // First check if team exists
+        const teamResult = await db.query(
+            'SELECT id FROM Teams WHERE team_code = $1',
+            [team_code]
+        );
 
         if (teamResult.rows.length === 0) {
             return res.status(404).json({ error: 'Team not found' });
@@ -63,23 +65,37 @@ exports.joinTeam = async (req, res) => {
 
         const teamId = teamResult.rows[0].id;
 
-        // Check if the user is already a member of the team
-        const memberCheck = await db.query(`
-            SELECT * FROM TeamMembers WHERE team_id = $1 AND user_id = $2
-        `, [teamId, userId]);
+        // Check if user is already a member
+        const memberCheck = await db.query(
+            'SELECT id FROM TeamMembers WHERE team_id = $1 AND user_id = $2',
+            [teamId, userId]
+        );
 
         if (memberCheck.rows.length > 0) {
             return res.status(400).json({ error: 'Already a member of this team' });
         }
 
-        // Add the user to the team
-        await db.query(`
-            INSERT INTO TeamMembers (team_id, user_id) VALUES ($1, $2)
-        `, [teamId, userId]);
+        // Check member count
+        const memberCountResult = await db.query(
+            'SELECT COUNT(*) as count FROM TeamMembers WHERE team_id = $1',
+            [teamId]
+        );
 
-        res.json({ message: 'Successfully joined the team' });
+        if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
+            return res.status(400).json({ 
+                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
+            });
+        }
+
+        // Add member if all checks pass
+        await db.query(
+            'INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)',
+            [teamId, userId, false]
+        );
+
+        res.json({ message: 'Successfully joined team' });
     } catch (err) {
-        console.error('Failed to join team:', err);
+        console.error('Join team error:', err);
         res.status(500).json({ error: 'Failed to join team' });
     }
 }; 

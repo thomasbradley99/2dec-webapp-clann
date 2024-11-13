@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import sessionService from '../services/sessionService';
+import NavBar from '../components/NavBar';
 
 function Sessions() {
   const [url, setUrl] = useState('');
@@ -86,113 +87,121 @@ function Sessions() {
   }, []);
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <h2>Upload Game</h2>
-      {feedback && (
-        <div style={{
-          padding: '10px',
-          marginBottom: '20px',
-          borderRadius: '4px',
-          backgroundColor: feedback.type === 'error' ? '#ff00001a' : '#0080001a',
-          color: feedback.type === 'error' ? '#ff0000' : '#008000'
-        }}>
-          {feedback.message}
-        </div>
-      )}
-      <form onSubmit={handleUpload}>
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="Game Footage URL"
-          style={{ 
-            width: '100%', 
-            marginBottom: '10px', 
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #555',
-            backgroundColor: '#1a1a1a',
-            color: 'white'
-          }}
-        />
-        <input
-          type="text"
-          value={teamName}
-          onChange={(e) => setTeamName(e.target.value)}
-          placeholder="Team Name"
-          style={{ 
-            width: '100%', 
-            marginBottom: '10px', 
-            padding: '8px',
-            borderRadius: '4px',
-            border: '1px solid #555',
-            backgroundColor: '#1a1a1a',
-            color: 'white'
-          }}
-        />
-        <button 
-          type="submit"
-          disabled={isLoading || !url.trim() || !teamName.trim()}
-          style={{
-            width: '100%',
+    <div style={{ 
+      backgroundColor: '#1a1a1a', 
+      minHeight: '100vh',
+      color: '#ffffff',
+      paddingBottom: '80px'
+    }}>
+      <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+        <h2>Upload Game</h2>
+        {feedback && (
+          <div style={{
             padding: '10px',
-            backgroundColor: isLoading || !url.trim() || !teamName.trim() 
-              ? '#014422' 
-              : '#016F33',
-            color: 'white',
-            border: 'none',
+            marginBottom: '20px',
             borderRadius: '4px',
-            cursor: isLoading || !url.trim() || !teamName.trim() 
-              ? 'not-allowed' 
-              : 'pointer'
-          }}
-        >
-          {isLoading ? 'Uploading...' : 'Upload Game'}
-        </button>
-      </form>
-      <div style={{ marginTop: '30px' }}>
-        <h3>Recent Sessions</h3>
-        {sessions.length === 0 ? (
-          <p>No sessions uploaded yet.</p>
-        ) : (
-          <div>
-            {sessions.map(session => (
-              <div 
-                key={session.id}
-                style={{
-                  padding: '15px',
-                  marginBottom: '10px',
-                  backgroundColor: '#1a1a1a',
-                  borderRadius: '4px',
-                  border: '1px solid #333',
-                  position: 'relative'
-                }}
-              >
-                <button
-                  onClick={() => handleDelete(session.id)}
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    backgroundColor: '#FF4444',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '5px 10px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Delete
-                </button>
-                <p>Team: {session.team_name}</p>
-                <p>URL: {session.footage_url}</p>
-                <p>Status: {session.status}</p>
-                <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
-              </div>
-            ))}
+            backgroundColor: feedback.type === 'error' ? '#ff00001a' : '#0080001a',
+            color: feedback.type === 'error' ? '#ff0000' : '#008000'
+          }}>
+            {feedback.message}
           </div>
         )}
+        <form onSubmit={handleUpload}>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="Game Footage URL"
+            style={{ 
+              width: '100%', 
+              marginBottom: '10px', 
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #555',
+              backgroundColor: '#1a1a1a',
+              color: 'white'
+            }}
+          />
+          <input
+            type="text"
+            value={teamName}
+            onChange={(e) => setTeamName(e.target.value)}
+            placeholder="Team Name"
+            style={{ 
+              width: '100%', 
+              marginBottom: '10px', 
+              padding: '8px',
+              borderRadius: '4px',
+              border: '1px solid #555',
+              backgroundColor: '#1a1a1a',
+              color: 'white'
+            }}
+          />
+          <button 
+            type="submit"
+            disabled={isLoading || !url.trim() || !teamName.trim()}
+            style={{
+              width: '100%',
+              padding: '10px',
+              backgroundColor: isLoading || !url.trim() || !teamName.trim() 
+                ? '#014422' 
+                : '#016F33',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: isLoading || !url.trim() || !teamName.trim() 
+                ? 'not-allowed' 
+                : 'pointer'
+            }}
+          >
+            {isLoading ? 'Uploading...' : 'Upload Game'}
+          </button>
+        </form>
+        <div style={{ marginTop: '30px' }}>
+          <h3>Recent Sessions</h3>
+          {sessions.length === 0 ? (
+            <p>No sessions uploaded yet.</p>
+          ) : (
+            <div>
+              {sessions.map(session => (
+                <div 
+                  key={session.id}
+                  style={{
+                    padding: '15px',
+                    marginBottom: '10px',
+                    backgroundColor: '#1a1a1a',
+                    borderRadius: '4px',
+                    border: '1px solid #333',
+                    position: 'relative'
+                  }}
+                >
+                  <button
+                    onClick={() => handleDelete(session.id)}
+                    style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '10px',
+                      backgroundColor: '#FF4444',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      padding: '5px 10px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Delete
+                  </button>
+                  <p>Team: {session.team_name}</p>
+                  <p>URL: {session.footage_url}</p>
+                  <p>Status: {session.status}</p>
+                  <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      <NavBar />
     </div>
   );
 }
