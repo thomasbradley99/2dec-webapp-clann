@@ -8,6 +8,7 @@ function Sessions() {
   const [feedback, setFeedback] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
+  const [teamCode, setTeamCode] = useState('');
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -45,6 +46,38 @@ function Sessions() {
       setFeedback({
         type: 'error',
         message: err.message || 'Upload failed',
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleJoinTeam = async (e) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setFeedback(null);
+
+    if (!teamCode.trim()) {
+      setFeedback({
+        type: 'error',
+        message: 'Please enter a team code'
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      await sessionService.joinTeam(teamCode.trim());
+      setFeedback({
+        type: 'success',
+        message: 'Successfully joined team!'
+      });
+      setTeamCode('');
+      fetchSessions();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to join team'
       });
     } finally {
       setIsLoading(false);
@@ -94,7 +127,8 @@ function Sessions() {
       paddingBottom: '80px'
     }}>
       <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-        <h2>Upload Game</h2>
+        <h2>Access Sessions</h2>
+        
         {feedback && (
           <div style={{
             padding: '10px',
@@ -106,59 +140,111 @@ function Sessions() {
             {feedback.message}
           </div>
         )}
-        <form onSubmit={handleUpload}>
-          <input
-            type="text"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Game Footage URL"
-            style={{ 
-              width: '100%', 
-              marginBottom: '10px', 
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #555',
-              backgroundColor: '#1a1a1a',
-              color: 'white'
-            }}
-          />
-          <input
-            type="text"
-            value={teamName}
-            onChange={(e) => setTeamName(e.target.value)}
-            placeholder="Team Name"
-            style={{ 
-              width: '100%', 
-              marginBottom: '10px', 
-              padding: '8px',
-              borderRadius: '4px',
-              border: '1px solid #555',
-              backgroundColor: '#1a1a1a',
-              color: 'white'
-            }}
-          />
-          <button 
-            type="submit"
-            disabled={isLoading || !url.trim() || !teamName.trim()}
-            style={{
-              width: '100%',
-              padding: '10px',
-              backgroundColor: isLoading || !url.trim() || !teamName.trim() 
-                ? '#014422' 
-                : '#016F33',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: isLoading || !url.trim() || !teamName.trim() 
-                ? 'not-allowed' 
-                : 'pointer'
-            }}
-          >
-            {isLoading ? 'Uploading...' : 'Upload Game'}
-          </button>
-        </form>
+
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '1fr 1fr', 
+          gap: '20px',
+          marginBottom: '30px'
+        }}>
+          <div style={{ 
+            padding: '20px', 
+            backgroundColor: '#333333', 
+            borderRadius: '8px' 
+          }}>
+            <h3>Upload New Game</h3>
+            <form onSubmit={handleUpload}>
+              <input
+                type="text"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                placeholder="Game Footage URL"
+                style={{ 
+                  width: '100%', 
+                  marginBottom: '10px', 
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #555',
+                  backgroundColor: '#1a1a1a',
+                  color: 'white'
+                }}
+              />
+              <input
+                type="text"
+                value={teamName}
+                onChange={(e) => setTeamName(e.target.value)}
+                placeholder="Team Name"
+                style={{ 
+                  width: '100%', 
+                  marginBottom: '10px', 
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #555',
+                  backgroundColor: '#1a1a1a',
+                  color: 'white'
+                }}
+              />
+              <button 
+                type="submit"
+                disabled={isLoading || !url.trim() || !teamName.trim()}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: isLoading || !url.trim() || !teamName.trim() ? '#014422' : '#016F33',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: isLoading || !url.trim() || !teamName.trim() ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLoading ? 'Uploading...' : 'Upload Game'}
+              </button>
+            </form>
+          </div>
+
+          <div style={{ 
+            padding: '20px', 
+            backgroundColor: '#333333', 
+            borderRadius: '8px' 
+          }}>
+            <h3>Join Existing Team</h3>
+            <form onSubmit={handleJoinTeam}>
+              <input
+                type="text"
+                value={teamCode}
+                onChange={(e) => setTeamCode(e.target.value)}
+                placeholder="Enter Team Code"
+                style={{ 
+                  width: '100%', 
+                  marginBottom: '10px', 
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #555',
+                  backgroundColor: '#1a1a1a',
+                  color: 'white'
+                }}
+              />
+              <button 
+                type="submit"
+                disabled={isLoading || !teamCode.trim()}
+                style={{
+                  width: '100%',
+                  padding: '10px',
+                  backgroundColor: isLoading || !teamCode.trim() ? '#014422' : '#016F33',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: isLoading || !teamCode.trim() ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {isLoading ? 'Joining...' : 'Join Team'}
+              </button>
+            </form>
+          </div>
+        </div>
+
         <div style={{ marginTop: '30px' }}>
-          <h3>Recent Sessions</h3>
+          <h3>Your Sessions</h3>
           {sessions.length === 0 ? (
             <p>No sessions uploaded yet.</p>
           ) : (

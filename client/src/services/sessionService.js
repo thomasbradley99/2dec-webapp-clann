@@ -42,6 +42,15 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to add analysis');
         }
+    },
+
+    async joinTeam(teamCode) {
+        try {
+            const response = await api.post('/teams/join', { team_code: teamCode });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to join team');
+        }
     }
 };
 
