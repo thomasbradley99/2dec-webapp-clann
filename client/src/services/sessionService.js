@@ -42,15 +42,6 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to add analysis');
         }
-    },
-
-    async getPendingSessions() {
-        try {
-            const response = await api.get('/sessions/pending');
-            return response.data;
-        } catch (error) {
-            throw new Error(error.response?.data?.error || 'Failed to fetch pending sessions');
-        }
     }
 };
 

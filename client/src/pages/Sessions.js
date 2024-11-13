@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import sessionService from '../services/sessionService';
-import NavBar from '../components/NavBar';
-import axios from 'axios';
 
 function Sessions() {
   const [url, setUrl] = useState('');
@@ -59,6 +56,28 @@ function Sessions() {
       setSessions(response);
     } catch (err) {
       console.error('Failed to fetch sessions:', err);
+      setFeedback({
+        type: 'error',
+        message: 'Failed to fetch sessions'
+      });
+    }
+  };
+
+  const handleDelete = async (sessionId) => {
+    if (window.confirm('Are you sure you want to delete this session?')) {
+        try {
+            await sessionService.deleteSession(sessionId);
+            setFeedback({
+                type: 'success',
+                message: 'Session deleted successfully'
+            });
+            fetchSessions();
+        } catch (err) {
+            setFeedback({
+                type: 'error',
+                message: err.message || 'Failed to delete session'
+            });
+        }
     }
   };
 
@@ -66,151 +85,114 @@ function Sessions() {
     fetchSessions();
   }, []);
 
-  const handleDelete = async (sessionId) => {
-    if (window.confirm('Are you sure you want to delete this session?')) {
-        try {
-            const user = JSON.parse(localStorage.getItem('user'));
-            await axios.delete(`http://localhost:3001/api/sessions/${sessionId}`, {
-                headers: {
-                    'Authorization': `Bearer ${user.token}`,
-                    'user-id': user.id
-                }
-            });
-            setFeedback({
-                type: 'success',
-                message: 'Session deleted successfully'
-            });
-            fetchSessions();
-        } catch (err) {
-            console.error('Delete error:', err.response?.data || err.message);
-            setFeedback({
-                type: 'error',
-                message: err.response?.data?.error || 'Failed to delete session'
-            });
-        }
-    }
-  };
-
   return (
-    <div style={{ 
-      backgroundColor: '#1a1a1a', 
-      minHeight: '100vh',
-      color: '#ffffff'
-    }}>
-      <div style={{ padding: '20px', paddingBottom: '80px' }}>
-        <h2>Sessions</h2>
-        
-        <div style={{ marginBottom: '30px' }}>
-          <form onSubmit={handleUpload}>
-            <input
-              type="text"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Game Footage URL"
-              style={{ 
-                width: '100%', 
-                marginBottom: '10px', 
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #555',
-                backgroundColor: '#1a1a1a',
-                color: 'white'
-              }}
-            />
-            <input
-              type="text"
-              value={teamName}
-              onChange={(e) => setTeamName(e.target.value)}
-              placeholder="Team Name"
-              style={{ 
-                width: '100%', 
-                marginBottom: '10px', 
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #555',
-                backgroundColor: '#1a1a1a',
-                color: 'white'
-              }}
-            />
-            <button 
-              type="submit"
-              disabled={isLoading || !url.trim() || !teamName.trim()}
-              style={{
-                width: '100%',
-                padding: '10px',
-                backgroundColor: isLoading || !url.trim() || !teamName.trim() 
-                  ? '#014422' 
-                  : '#016F33',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: isLoading || !url.trim() || !teamName.trim() 
-                  ? 'not-allowed' 
-                  : 'pointer'
-              }}
-            >
-              {isLoading ? 'Uploading...' : 'Upload Game'}
-            </button>
-          </form>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h2>Upload Game</h2>
+      {feedback && (
+        <div style={{
+          padding: '10px',
+          marginBottom: '20px',
+          borderRadius: '4px',
+          backgroundColor: feedback.type === 'error' ? '#ff00001a' : '#0080001a',
+          color: feedback.type === 'error' ? '#ff0000' : '#008000'
+        }}>
+          {feedback.message}
         </div>
-
-        {feedback && (
-          <div style={{
-            padding: '15px',
-            marginTop: '20px',
+      )}
+      <form onSubmit={handleUpload}>
+        <input
+          type="text"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          placeholder="Game Footage URL"
+          style={{ 
+            width: '100%', 
+            marginBottom: '10px', 
+            padding: '8px',
             borderRadius: '4px',
-            backgroundColor: feedback.type === 'success' ? '#016F33' : '#FF4444',
+            border: '1px solid #555',
+            backgroundColor: '#1a1a1a',
             color: 'white'
-          }}>
-            {feedback.message}
-          </div>
-        )}
-
-        <div style={{ marginTop: '30px' }}>
-          <h3>Recent Sessions</h3>
-          {sessions.length === 0 ? (
-            <p>No sessions uploaded yet.</p>
-          ) : (
-            <div>
-              {sessions.map(session => (
-                <div 
-                  key={session.id}
+          }}
+        />
+        <input
+          type="text"
+          value={teamName}
+          onChange={(e) => setTeamName(e.target.value)}
+          placeholder="Team Name"
+          style={{ 
+            width: '100%', 
+            marginBottom: '10px', 
+            padding: '8px',
+            borderRadius: '4px',
+            border: '1px solid #555',
+            backgroundColor: '#1a1a1a',
+            color: 'white'
+          }}
+        />
+        <button 
+          type="submit"
+          disabled={isLoading || !url.trim() || !teamName.trim()}
+          style={{
+            width: '100%',
+            padding: '10px',
+            backgroundColor: isLoading || !url.trim() || !teamName.trim() 
+              ? '#014422' 
+              : '#016F33',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: isLoading || !url.trim() || !teamName.trim() 
+              ? 'not-allowed' 
+              : 'pointer'
+          }}
+        >
+          {isLoading ? 'Uploading...' : 'Upload Game'}
+        </button>
+      </form>
+      <div style={{ marginTop: '30px' }}>
+        <h3>Recent Sessions</h3>
+        {sessions.length === 0 ? (
+          <p>No sessions uploaded yet.</p>
+        ) : (
+          <div>
+            {sessions.map(session => (
+              <div 
+                key={session.id}
+                style={{
+                  padding: '15px',
+                  marginBottom: '10px',
+                  backgroundColor: '#1a1a1a',
+                  borderRadius: '4px',
+                  border: '1px solid #333',
+                  position: 'relative'
+                }}
+              >
+                <button
+                  onClick={() => handleDelete(session.id)}
                   style={{
-                    padding: '15px',
-                    marginBottom: '10px',
-                    backgroundColor: '#1a1a1a',
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: '#FF4444',
+                    color: 'white',
+                    border: 'none',
                     borderRadius: '4px',
-                    border: '1px solid #333',
-                    position: 'relative'
+                    padding: '5px 10px',
+                    cursor: 'pointer'
                   }}
                 >
-                  <button
-                    onClick={() => handleDelete(session.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      backgroundColor: '#FF4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '5px 10px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Delete
-                  </button>
-                  <p>Team: {session.team_name}</p>
-                  <p>URL: {session.footage_url}</p>
-                  <p>Status: {session.status}</p>
-                  <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                  Delete
+                </button>
+                <p>Team: {session.team_name}</p>
+                <p>URL: {session.footage_url}</p>
+                <p>Status: {session.status}</p>
+                <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-      <NavBar />
     </div>
   );
 }
