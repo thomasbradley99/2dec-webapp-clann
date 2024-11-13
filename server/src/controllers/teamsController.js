@@ -51,11 +51,13 @@ exports.createTeam = async (req, res) => {
 exports.joinTeam = async (req, res) => {
     const { team_code } = req.body;
     const userId = req.user.id;
-
+    
     try {
-        // First check if team exists
+        // First find the team
         const teamResult = await db.query(
-            'SELECT id FROM Teams WHERE team_code = $1',
+            `SELECT id 
+             FROM Teams 
+             WHERE team_code = $1`,
             [team_code]
         );
 
@@ -67,7 +69,9 @@ exports.joinTeam = async (req, res) => {
 
         // Check if user is already a member
         const memberCheck = await db.query(
-            'SELECT id FROM TeamMembers WHERE team_id = $1 AND user_id = $2',
+            `SELECT team_id 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
             [teamId, userId]
         );
 
@@ -75,22 +79,11 @@ exports.joinTeam = async (req, res) => {
             return res.status(400).json({ error: 'Already a member of this team' });
         }
 
-        // Check member count
-        const memberCountResult = await db.query(
-            'SELECT COUNT(*) as count FROM TeamMembers WHERE team_id = $1',
-            [teamId]
-        );
-
-        if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
-            return res.status(400).json({ 
-                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
-            });
-        }
-
-        // Add member if all checks pass
+        // Add user to team
         await db.query(
-            'INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)',
-            [teamId, userId, false]
+            `INSERT INTO TeamMembers (team_id, user_id, is_admin)
+             VALUES ($1, $2, false)`,
+            [teamId, userId]
         );
 
         res.json({ message: 'Successfully joined team' });

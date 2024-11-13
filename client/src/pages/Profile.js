@@ -14,6 +14,7 @@ function Profile() {
     const [teamMembers, setTeamMembers] = useState([]);
     const [membersLoading, setMembersLoading] = useState(false);
     const [feedback, setFeedback] = useState(null);
+    const [removingMember, setRemovingMember] = useState(null);
 
     useEffect(() => {
         const userData = JSON.parse(localStorage.getItem('user'));
@@ -24,6 +25,15 @@ function Profile() {
         setUser(userData);
         fetchTeams();
     }, [navigate]);
+
+    useEffect(() => {
+        if (feedback) {
+            const timer = setTimeout(() => {
+                setFeedback(null);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [feedback]);
 
     const fetchTeams = async () => {
         try {
@@ -193,6 +203,7 @@ function Profile() {
                                                                 <button
                                                                     onClick={async () => {
                                                                         if (window.confirm(`Are you sure you want to remove ${member.email} from the team?`)) {
+                                                                            setRemovingMember(member.id);
                                                                             try {
                                                                                 await teamService.removeTeamMember(team.id, member.id);
                                                                                 setFeedback({
@@ -206,6 +217,8 @@ function Profile() {
                                                                                     type: 'error',
                                                                                     message: err.message
                                                                                 });
+                                                                            } finally {
+                                                                                setRemovingMember(null);
                                                                             }
                                                                         }
                                                                     }}
@@ -216,10 +229,11 @@ function Profile() {
                                                                         padding: '2px 8px',
                                                                         borderRadius: '4px',
                                                                         cursor: 'pointer',
-                                                                        fontSize: '12px'
+                                                                        fontSize: '12px',
+                                                                        disabled: removingMember === member.id
                                                                     }}
                                                                 >
-                                                                    Remove
+                                                                    {removingMember === member.id ? 'Removing...' : 'Remove'}
                                                                 </button>
                                                             )}
                                                         </div>
@@ -233,6 +247,21 @@ function Profile() {
                         </div>
                     )}
                 </div>
+
+                {feedback && (
+                    <div style={{
+                        padding: '10px',
+                        marginTop: '10px',
+                        backgroundColor: feedback.type === 'success' ? '#016F33' : '#FF4444',
+                        borderRadius: '4px',
+                        position: 'fixed',
+                        bottom: '20px',
+                        right: '20px',
+                        zIndex: 1000
+                    }}>
+                        {feedback.message}
+                    </div>
+                )}
 
                 {/* Logout Button */}
                 <button 
@@ -287,17 +316,6 @@ function Profile() {
                 >
                     Delete Account
                 </button>
-
-                {feedback && (
-                    <div style={{
-                        padding: '10px',
-                        marginTop: '10px',
-                        backgroundColor: feedback.type === 'success' ? '#016F33' : '#FF4444',
-                        borderRadius: '4px'
-                    }}>
-                        {feedback.message}
-                    </div>
-                )}
             </div>
             <NavBar />
         </div>
