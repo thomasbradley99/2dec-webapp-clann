@@ -13,8 +13,16 @@ function CompanyDashboard() {
     const [error, setError] = useState(null);
     const [expandedSession, setExpandedSession] = useState(null);
     const [analysisDescription, setAnalysisDescription] = useState('');
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
+    const [selectedFiles, setSelectedFiles] = useState({
+        heatmap: null,
+        sprint_map: null,
+        game_momentum: null
+    });
+    const [previewUrls, setPreviewUrls] = useState({
+        heatmap: null,
+        sprint_map: null,
+        game_momentum: null
+    });
     
     const user = useMemo(() => getUserFromStorage(), []);
 
@@ -43,34 +51,40 @@ function CompanyDashboard() {
         }
     };
 
-    const handleFileSelect = (event) => {
+    const handleFileSelect = (event, type) => {
         const file = event.target.files[0];
         if (file) {
-            setSelectedFile(file);
+            setSelectedFiles(prev => ({
+                ...prev,
+                [type]: file
+            }));
             const reader = new FileReader();
             reader.onloadend = () => {
-                setPreviewUrl(reader.result);
+                setPreviewUrls(prev => ({
+                    ...prev,
+                    [type]: reader.result
+                }));
             };
             reader.readAsDataURL(file);
         }
     };
 
     const handleAnalysisSubmit = async (sessionId) => {
-        if (!selectedFile) {
+        if (!selectedFiles.heatmap) {
             setError('Please select an image');
             return;
         }
 
         const formData = new FormData();
-        formData.append('analysis', selectedFile);
+        formData.append('analysis', selectedFiles.heatmap);
         formData.append('sessionId', sessionId);
         formData.append('description', analysisDescription);
 
         try {
             console.log('Sending analysis:', {
                 sessionId,
-                fileSize: selectedFile.size,
-                fileName: selectedFile.name
+                fileSize: selectedFiles.heatmap.size,
+                fileName: selectedFiles.heatmap.name
             });
             
             const response = await axios.post(
@@ -86,8 +100,16 @@ function CompanyDashboard() {
             
             console.log('Upload response:', response.data);
             
-            setSelectedFile(null);
-            setPreviewUrl(null);
+            setSelectedFiles({
+                heatmap: null,
+                sprint_map: null,
+                game_momentum: null
+            });
+            setPreviewUrls({
+                heatmap: null,
+                sprint_map: null,
+                game_momentum: null
+            });
             setAnalysisDescription('');
             setExpandedSession(null);
             fetchSessions();
@@ -104,8 +126,16 @@ function CompanyDashboard() {
     const handleSessionClick = (sessionId) => {
         setExpandedSession(expandedSession === sessionId ? null : sessionId);
         if (expandedSession === sessionId) {
-            setSelectedFile(null);
-            setPreviewUrl(null);
+            setSelectedFiles({
+                heatmap: null,
+                sprint_map: null,
+                game_momentum: null
+            });
+            setPreviewUrls({
+                heatmap: null,
+                sprint_map: null,
+                game_momentum: null
+            });
             setAnalysisDescription('');
         }
     };
@@ -145,10 +175,7 @@ function CompanyDashboard() {
                 {loading && <p>Loading sessions...</p>}
                 {error && <p style={{ color: '#FF6B35' }}>{error}</p>}
 
-                <div style={{ 
-                    display: 'grid',
-                    gap: '20px',
-                }}>
+                <div style={{ display: 'grid', gap: '20px' }}>
                     {sessions.map(session => (
                         <div 
                             key={session.id} 
@@ -162,11 +189,7 @@ function CompanyDashboard() {
                                 onClick={() => handleSessionClick(session.id)}
                                 style={{
                                     padding: '20px',
-                                    cursor: 'pointer',
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    alignItems: 'center',
-                                    borderBottom: expandedSession === session.id ? '1px solid #444' : 'none'
+                                    cursor: 'pointer'
                                 }}
                             >
                                 <div>
@@ -174,8 +197,16 @@ function CompanyDashboard() {
                                     <p style={{ margin: '0', color: '#888' }}>
                                         Uploaded by {session.uploaded_by_email} on {new Date(session.created_at).toLocaleDateString()}
                                     </p>
+                                    <p style={{ margin: '5px 0 0 0', color: '#888' }}>
+                                        URL: {session.footage_url}
+                                    </p>
                                 </div>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                <div style={{ 
+                                    display: 'flex', 
+                                    alignItems: 'center', 
+                                    justifyContent: 'space-between',
+                                    marginTop: '10px'
+                                }}>
                                     <span style={{ 
                                         color: session.status === 'PENDING' ? '#ff4444' : '#4CAF50',
                                         fontWeight: 'bold'
@@ -208,48 +239,285 @@ function CompanyDashboard() {
                                         <div style={{ 
                                             backgroundColor: '#444444',
                                             padding: '20px',
-                                            borderRadius: '4px',
-                                            position: 'relative'
+                                            borderRadius: '4px'
                                         }}>
-                                            {session.analyses && session.analyses.length > 0 ? (
-                                                <>
-                                                    <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
-                                                        <button
-                                                            onClick={() => handleDeleteAnalysis(session.analyses[0].id)}
-                                                            style={{
-                                                                backgroundColor: '#FF4444',
-                                                                color: 'white',
-                                                                border: 'none',
-                                                                borderRadius: '4px',
-                                                                padding: '5px 10px',
-                                                                cursor: 'pointer',
-                                                                marginRight: '10px'
-                                                            }}
-                                                        >
-                                                            Remove
-                                                        </button>
-                                                        <label
-                                                            style={{
+                                            {/* Heatmap Section */}
+                                            <h5 style={{ color: '#86C6E3', marginBottom: '15px' }}>Heatmap</h5>
+                                            <div style={{ 
+                                                backgroundColor: '#333333',
+                                                padding: '20px',
+                                                borderRadius: '4px',
+                                                position: 'relative'
+                                            }}>
+                                                {previewUrls.heatmap ? (
+                                                    <>
+                                                        <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                                            <button
+                                                                onClick={() => handleDeleteAnalysis(session.analyses?.find(a => a.type === 'heatmap')?.id)}
+                                                                style={{
+                                                                    backgroundColor: '#FF4444',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    padding: '5px 10px',
+                                                                    cursor: 'pointer',
+                                                                    marginRight: '10px'
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                            <label style={{
                                                                 backgroundColor: '#1A5F7A',
                                                                 color: 'white',
                                                                 border: 'none',
                                                                 borderRadius: '4px',
                                                                 padding: '5px 10px',
                                                                 cursor: 'pointer'
-                                                            }}
-                                                        >
-                                                            Replace
+                                                            }}>
+                                                                Replace
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => handleFileSelect(e, 'heatmap')}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <img 
+                                                            src={previewUrls.heatmap} 
+                                                            alt="Heatmap Preview" 
+                                                            style={{ 
+                                                                width: '100%',
+                                                                maxWidth: '500px',
+                                                                borderRadius: '4px'
+                                                            }} 
+                                                        />
+                                                    </>
+                                                ) : session.analyses?.find(a => a.type === 'heatmap') ? (
+                                                    <>
+                                                        <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                                            <button
+                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'heatmap').id)}
+                                                                style={{
+                                                                    backgroundColor: '#FF4444',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    padding: '5px 10px',
+                                                                    cursor: 'pointer',
+                                                                    marginRight: '10px'
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                            <label style={{
+                                                                backgroundColor: '#1A5F7A',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                padding: '5px 10px',
+                                                                cursor: 'pointer'
+                                                            }}>
+                                                                Replace
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => handleFileSelect(e, 'heatmap')}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <img 
+                                                            src={`http://localhost:3001${session.analyses.find(a => a.type === 'heatmap').image_url}`}
+                                                            alt="Heatmap" 
+                                                            style={{ 
+                                                                width: '100%',
+                                                                maxWidth: '500px',
+                                                                borderRadius: '4px'
+                                                            }} 
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                                                        <label style={{
+                                                            backgroundColor: '#1A5F7A',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            padding: '10px 20px',
+                                                            cursor: 'pointer'
+                                                        }}>
+                                                            Upload New Image
                                                             <input
                                                                 type="file"
                                                                 accept="image/*"
-                                                                onChange={handleFileSelect}
+                                                                onChange={(e) => handleFileSelect(e, 'heatmap')}
                                                                 style={{ display: 'none' }}
                                                             />
                                                         </label>
                                                     </div>
+                                                )}
+                                            </div>
+
+                                            {/* Sprint Map Section */}
+                                            <h5 style={{ color: '#86C6E3', marginTop: '30px', marginBottom: '15px' }}>Sprint Map</h5>
+                                            <div style={{ 
+                                                backgroundColor: '#333333',
+                                                padding: '20px',
+                                                borderRadius: '4px',
+                                                position: 'relative'
+                                            }}>
+                                                {session.analyses?.find(a => a.type === 'sprint_map') ? (
+                                                    <>
+                                                        <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                                            <button
+                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'sprint_map').id)}
+                                                                style={{
+                                                                    backgroundColor: '#FF4444',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    padding: '5px 10px',
+                                                                    cursor: 'pointer',
+                                                                    marginRight: '10px'
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                            <label style={{
+                                                                backgroundColor: '#1A5F7A',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                padding: '5px 10px',
+                                                                cursor: 'pointer'
+                                                            }}>
+                                                                Replace
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => handleFileSelect(e, 'sprint_map')}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <img 
+                                                            src={`http://localhost:3001${session.analyses.find(a => a.type === 'sprint_map').image_url}`}
+                                                            alt="Sprint Map" 
+                                                            style={{ 
+                                                                width: '100%',
+                                                                maxWidth: '500px',
+                                                                borderRadius: '4px',
+                                                                marginBottom: '20px'
+                                                            }} 
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                                                        <label style={{
+                                                            backgroundColor: '#1A5F7A',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            padding: '10px 20px',
+                                                            cursor: 'pointer'
+                                                        }}>
+                                                            Upload Sprint Map
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => handleFileSelect(e, 'sprint_map')}
+                                                                style={{ display: 'none' }}
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Game Momentum Section */}
+                                            <h5 style={{ color: '#86C6E3', marginTop: '30px', marginBottom: '15px' }}>Game Momentum</h5>
+                                            <div style={{ 
+                                                backgroundColor: '#333333',
+                                                padding: '20px',
+                                                borderRadius: '4px',
+                                                position: 'relative'
+                                            }}>
+                                                {session.analyses?.find(a => a.type === 'game_momentum') ? (
+                                                    <>
+                                                        <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                                            <button
+                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'game_momentum').id)}
+                                                                style={{
+                                                                    backgroundColor: '#FF4444',
+                                                                    color: 'white',
+                                                                    border: 'none',
+                                                                    borderRadius: '4px',
+                                                                    padding: '5px 10px',
+                                                                    cursor: 'pointer',
+                                                                    marginRight: '10px'
+                                                                }}
+                                                            >
+                                                                Remove
+                                                            </button>
+                                                            <label style={{
+                                                                backgroundColor: '#1A5F7A',
+                                                                color: 'white',
+                                                                border: 'none',
+                                                                borderRadius: '4px',
+                                                                padding: '5px 10px',
+                                                                cursor: 'pointer'
+                                                            }}>
+                                                                Replace
+                                                                <input
+                                                                    type="file"
+                                                                    accept="image/*"
+                                                                    onChange={(e) => handleFileSelect(e, 'game_momentum')}
+                                                                    style={{ display: 'none' }}
+                                                                />
+                                                            </label>
+                                                        </div>
+                                                        <img 
+                                                            src={`http://localhost:3001${session.analyses.find(a => a.type === 'game_momentum').image_url}`}
+                                                            alt="Game Momentum" 
+                                                            style={{ 
+                                                                width: '100%',
+                                                                maxWidth: '500px',
+                                                                borderRadius: '4px',
+                                                                marginBottom: '20px'
+                                                            }} 
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                                                        <label style={{
+                                                            backgroundColor: '#1A5F7A',
+                                                            color: 'white',
+                                                            border: 'none',
+                                                            borderRadius: '4px',
+                                                            padding: '10px 20px',
+                                                            cursor: 'pointer'
+                                                        }}>
+                                                            Upload Game Momentum
+                                                            <input
+                                                                type="file"
+                                                                accept="image/*"
+                                                                onChange={(e) => handleFileSelect(e, 'game_momentum')}
+                                                                style={{ display: 'none' }}
+                                                            />
+                                                        </label>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Preview section for all types */}
+                                            {Object.entries(previewUrls).map(([type, url]) => url && (
+                                                <div key={type}>
+                                                    <h5 style={{ color: '#86C6E3', marginTop: '20px', marginBottom: '15px' }}>
+                                                        {type.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')} Preview
+                                                    </h5>
                                                     <img 
-                                                        src={`http://localhost:3001${session.analyses[0].image_url}`} 
-                                                        alt="Heatmap" 
+                                                        src={url} 
+                                                        alt={`${type} Preview`}
                                                         style={{ 
                                                             width: '100%',
                                                             maxWidth: '500px',
@@ -257,45 +525,8 @@ function CompanyDashboard() {
                                                             marginBottom: '20px'
                                                         }} 
                                                     />
-                                                </>
-                                            ) : (
-                                                <div style={{ 
-                                                    textAlign: 'center', 
-                                                    padding: '40px 20px' 
-                                                }}>
-                                                    <label
-                                                        style={{
-                                                            backgroundColor: '#1A5F7A',
-                                                            color: 'white',
-                                                            border: 'none',
-                                                            borderRadius: '4px',
-                                                            padding: '10px 20px',
-                                                            cursor: 'pointer'
-                                                        }}
-                                                    >
-                                                        Upload New Image
-                                                        <input
-                                                            type="file"
-                                                            accept="image/*"
-                                                            onChange={handleFileSelect}
-                                                            style={{ display: 'none' }}
-                                                        />
-                                                    </label>
                                                 </div>
-                                            )}
-
-                                            {previewUrl && (
-                                                <img 
-                                                    src={previewUrl} 
-                                                    alt="Preview" 
-                                                    style={{ 
-                                                        width: '100%',
-                                                        maxWidth: '500px',
-                                                        borderRadius: '4px',
-                                                        marginBottom: '20px'
-                                                    }} 
-                                                />
-                                            )}
+                                            ))}
 
                                             <div>
                                                 <p style={{ marginBottom: '10px', color: '#888' }}>Description:</p>
@@ -321,7 +552,7 @@ function CompanyDashboard() {
                                                 </p>
                                             )}
 
-                                            {(selectedFile || analysisDescription !== session.analyses?.[0]?.description) && (
+                                            {(selectedFiles.heatmap || analysisDescription !== session.analyses?.[0]?.description) && (
                                                 <button
                                                     onClick={() => handleAnalysisSubmit(session.id)}
                                                     style={{
