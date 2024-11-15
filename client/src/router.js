@@ -1,12 +1,17 @@
 import { createBrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
-import Sessions from './pages/Sessions';
 import Profile from './pages/Profile';
+import Sessions from './pages/Sessions';
+import CompanyDashboard from './pages/CompanyDashboard';
 
 const router = createBrowserRouter([
     {
         path: '/',
         element: <Login />,
+    },
+    {
+        path: '/company',
+        element: <CompanyDashboard />,
     },
     {
         path: '/sessions',

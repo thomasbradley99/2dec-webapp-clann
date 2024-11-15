@@ -70,35 +70,20 @@ function CompanyDashboard() {
     };
 
     const handleAnalysisSubmit = async (sessionId) => {
-        if (!selectedFiles.heatmap) {
-            setError('Please select an image');
-            return;
-        }
-
         const formData = new FormData();
-        formData.append('analysis', selectedFiles.heatmap);
+        
+        Object.entries(selectedFiles).forEach(([type, file]) => {
+            if (file) {
+                formData.append('analysis', file);
+                formData.append('type', type);
+            }
+        });
+        
         formData.append('sessionId', sessionId);
         formData.append('description', analysisDescription);
 
         try {
-            console.log('Sending analysis:', {
-                sessionId,
-                fileSize: selectedFiles.heatmap.size,
-                fileName: selectedFiles.heatmap.name
-            });
-            
-            const response = await axios.post(
-                'http://localhost:3001/api/sessions/analysis', 
-                formData,
-                {
-                    headers: { 
-                        'Authorization': `Bearer ${user.token}`,
-                        'Content-Type': 'multipart/form-data'
-                    }
-                }
-            );
-            
-            console.log('Upload response:', response.data);
+            const response = await sessionService.addAnalysis(formData);
             
             setSelectedFiles({
                 heatmap: null,
@@ -112,14 +97,10 @@ function CompanyDashboard() {
             });
             setAnalysisDescription('');
             setExpandedSession(null);
-            fetchSessions();
+            await fetchSessions();
         } catch (err) {
-            console.error('Upload error details:', {
-                message: err.message,
-                response: err.response?.data,
-                status: err.response?.status
-            });
-            setError(err.response?.data?.error || 'Failed to add analysis');
+            console.error('Upload error:', err);
+            setError(err.message || 'Failed to add analysis');
         }
     };
 
@@ -150,15 +131,18 @@ function CompanyDashboard() {
         }
     };
 
-    const handleDeleteAnalysis = async (analysisId) => {
-        if (window.confirm('Are you sure you want to delete this analysis?')) {
-            try {
-                await sessionService.deleteAnalysis(analysisId);
-                fetchSessions();
-            } catch (err) {
-                setError('Failed to delete analysis');
-                console.error('Error:', err);
-            }
+    const handleDeleteAnalysis = async (analysisId, type) => {
+        if (!analysisId) {
+            console.error(`No analysis ID provided for ${type}`);
+            return;
+        }
+
+        try {
+            await sessionService.deleteAnalysis(analysisId);
+            await fetchSessions();
+        } catch (err) {
+            console.error('Delete analysis error:', err);
+            setError(`Failed to delete ${type} analysis`);
         }
     };
 
@@ -253,7 +237,10 @@ function CompanyDashboard() {
                                                     <>
                                                         <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
                                                             <button
-                                                                onClick={() => handleDeleteAnalysis(session.analyses?.find(a => a.type === 'heatmap')?.id)}
+                                                                onClick={() => handleDeleteAnalysis(
+                                                                    session.analyses?.find(a => a.type === 'heatmap')?.id,
+                                                                    'heatmap'
+                                                                )}
                                                                 style={{
                                                                     backgroundColor: '#FF4444',
                                                                     color: 'white',
@@ -297,7 +284,10 @@ function CompanyDashboard() {
                                                     <>
                                                         <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
                                                             <button
-                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'heatmap').id)}
+                                                                onClick={() => handleDeleteAnalysis(
+                                                                    session.analyses.find(a => a.type === 'heatmap').id,
+                                                                    'heatmap'
+                                                                )}
                                                                 style={{
                                                                     backgroundColor: '#FF4444',
                                                                     color: 'white',
@@ -371,7 +361,10 @@ function CompanyDashboard() {
                                                     <>
                                                         <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
                                                             <button
-                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'sprint_map').id)}
+                                                                onClick={() => handleDeleteAnalysis(
+                                                                    session.analyses.find(a => a.type === 'sprint_map').id,
+                                                                    'sprint_map'
+                                                                )}
                                                                 style={{
                                                                     backgroundColor: '#FF4444',
                                                                     color: 'white',
@@ -446,7 +439,10 @@ function CompanyDashboard() {
                                                     <>
                                                         <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
                                                             <button
-                                                                onClick={() => handleDeleteAnalysis(session.analyses.find(a => a.type === 'game_momentum').id)}
+                                                                onClick={() => handleDeleteAnalysis(
+                                                                    session.analyses.find(a => a.type === 'game_momentum').id,
+                                                                    'game_momentum'
+                                                                )}
                                                                 style={{
                                                                     backgroundColor: '#FF4444',
                                                                     color: 'white',

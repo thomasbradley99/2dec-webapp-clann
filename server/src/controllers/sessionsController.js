@@ -399,30 +399,22 @@ exports.toggleSessionStatus = async (req, res) => {
 };
 
 exports.deleteAnalysis = async (req, res) => {
-    console.log('Starting delete analysis process');
-    console.log('Analysis ID:', req.params.analysisId);
-    
     try {
-        if (req.user.role !== 'COMPANY_MEMBER') {
-            return res.status(403).json({ error: 'Not authorized' });
+        const { analysisId } = req.params;
+        
+        if (!analysisId) {
+            return res.status(400).json({ error: 'Analysis ID is required' });
         }
 
-        const { analysisId } = req.params;
-
-        await db.query('BEGIN');
-
-        // Get the session ID before deleting the analysis
-        const sessionResult = await db.query(
-            'SELECT session_id FROM Analysis WHERE id = $1',
+        // First check if the analysis exists and belongs to a session
+        const analysisCheck = await db.query(
+            'SELECT * FROM Analysis WHERE id = $1',
             [analysisId]
         );
 
-        if (sessionResult.rows.length === 0) {
-            await db.query('ROLLBACK');
+        if (analysisCheck.rows.length === 0) {
             return res.status(404).json({ error: 'Analysis not found' });
         }
-
-        const sessionId = sessionResult.rows[0].session_id;
 
         // Delete the analysis
         await db.query(
@@ -430,21 +422,9 @@ exports.deleteAnalysis = async (req, res) => {
             [analysisId]
         );
 
-        // Update session status to PENDING
-        await db.query(`
-            UPDATE Sessions 
-            SET 
-                status = 'PENDING',
-                updated_at = CURRENT_TIMESTAMP
-            WHERE id = $1
-        `, [sessionId]);
-
-        await db.query('COMMIT');
         res.json({ message: 'Analysis deleted successfully' });
-
-    } catch (error) {
-        await db.query('ROLLBACK');
-        console.error('Error deleting analysis:', error);
-        res.status(500).json({ error: 'Internal server error' });
+    } catch (err) {
+        console.error('Delete analysis error:', err);
+        res.status(500).json({ error: 'Failed to delete analysis' });
     }
 }; 

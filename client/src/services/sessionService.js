@@ -65,11 +65,31 @@ const sessionService = {
     },
 
     async deleteAnalysis(analysisId) {
+        if (!analysisId) {
+            throw new Error('Analysis ID is required');
+        }
+
         try {
-            const response = await api.delete(`/sessions/analysis/${analysisId}`);
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await api.delete(`/sessions/analysis/${analysisId}`, {
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'user-id': user.id
+                }
+            });
             return response.data;
         } catch (error) {
+            console.error('Delete analysis error:', error);
             throw new Error(error.response?.data?.error || 'Failed to delete analysis');
+        }
+    },
+
+    getAllSessions: async () => {
+        try {
+            const response = await api.get('/sessions/all');
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch sessions');
         }
     }
 };
