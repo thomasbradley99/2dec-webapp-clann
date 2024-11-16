@@ -31,15 +31,24 @@ const sessionService = {
         }
     },
 
-    async addAnalysis(sessionId, formData) {
+    async addAnalysis(formData) {
         try {
-            const response = await api.post(`/sessions/${sessionId}/analysis`, formData, {
+            for (let pair of formData.entries()) {
+                console.log('FormData entry:', pair[0], pair[1]);
+            }
+
+            const response = await api.post('/sessions/analysis', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 }
             });
             return response.data;
         } catch (error) {
+            console.error('Full error details:', {
+                message: error.message,
+                response: error.response?.data,
+                status: error.response?.status
+            });
             throw new Error(error.response?.data?.error || 'Failed to add analysis');
         }
     },
@@ -90,6 +99,38 @@ const sessionService = {
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to fetch sessions');
+        }
+    },
+
+    async addAnalysisDescription(sessionId, data) {
+        try {
+            const response = await api.post(`/sessions/${sessionId}/description`, data);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to add description');
+        }
+    },
+
+    async updateAnalysisDescription(sessionId, description) {
+        try {
+            const response = await api.post(`/sessions/${sessionId}/description`, {
+                description: description
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Description update error:', error);
+            throw new Error(error.response?.data?.error || 'Failed to update description');
+        }
+    },
+
+    async addDescription(sessionId, description) {
+        try {
+            const response = await api.post(`/sessions/${sessionId}/description`, {
+                description
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to add description');
         }
     }
 };

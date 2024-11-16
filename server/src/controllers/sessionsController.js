@@ -23,7 +23,7 @@ const upload = multer({
         }
         cb(null, true);
     }
-}).single('analysis');
+}).single('file');
 
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
@@ -266,80 +266,50 @@ exports.getAllSessions = async (req, res) => {
 
 exports.addAnalysis = async (req, res) => {
     try {
-        console.log('1. Starting analysis upload...');
-        console.log('2. User:', req.user);
-        
         if (req.user.role !== 'COMPANY_MEMBER') {
-            console.log('3. Unauthorized role:', req.user.role);
             return res.status(403).json({ error: 'Not authorized' });
         }
 
         upload(req, res, async function(err) {
-            console.log('4. Multer processing complete');
-            
             if (err) {
-                console.error('5. Multer error:', err);
+                console.error('Upload error:', err);
                 return res.status(400).json({ error: err.message });
             }
 
             try {
-                console.log('6. Request body:', req.body);
-                console.log('7. File details:', {
-                    exists: !!req.file,
-                    filename: req.file?.filename,
-                    size: req.file?.size
-                });
-
-                if (!req.file) {
-                    console.error('8. No file uploaded');
-                    return res.status(400).json({ error: 'No file uploaded' });
-                }
-
-                const { sessionId, description } = req.body;
+                const { sessionId, type } = req.body;
+                // Convert type to uppercase
+                const upperType = type.toUpperCase();  // 'heatmap' becomes 'HEATMAP'
                 
-                if (!sessionId) {
-                    console.error('9. No sessionId provided');
-                    return res.status(400).json({ error: 'No sessionId provided' });
-                }
-
                 const imageUrl = `/analysis-images/${req.file.filename}`;
-                console.log('10. Generated image URL:', imageUrl);
-
-                await db.query('BEGIN');
                 
-                // Insert into Analysis table
-                await db.query(`
-                    INSERT INTO Analysis (session_id, analyst_id, description, image_url)
-                    VALUES ($1, $2, $3, $4)
-                `, [sessionId, req.user.id, description, imageUrl]);
-
-                // Update only the status in Sessions table
-                const updateResult = await db.query(`
-                    UPDATE Sessions 
-                    SET 
-                        status = 'REVIEWED',
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE id = $1
-                    RETURNING *
-                `, [sessionId]);
-
-                console.log('11. Update result:', updateResult.rows[0]);
-
-                await db.query('COMMIT');
-                
-                res.json({ 
-                    message: 'Analysis added successfully',
-                    imageUrl: imageUrl
+                console.log('Attempting DB insert with:', {
+                    sessionId,
+                    userId: req.user.id,
+                    imageUrl,
+                    type: upperType  // Use the uppercase version
                 });
-            } catch (err) {
-                await db.query('ROLLBACK');
-                console.error('12. Database error:', err);
-                res.status(500).json({ error: err.message });
+
+                const result = await db.query(
+                    `INSERT INTO analysis 
+                     (session_id, analyst_id, image_url, type)
+                     VALUES ($1, $2, $3, $4)
+                     RETURNING *`,
+                    [sessionId, req.user.id, imageUrl, upperType]  // Use the uppercase version
+                );
+
+                res.json(result.rows[0]);
+            } catch (error) {
+                console.error('Analysis processing error:', error);
+                res.status(500).json({ 
+                    error: 'Failed to process analysis',
+                    details: error.message 
+                });
             }
         });
-    } catch (outerErr) {
-        console.error('13. Outer error:', outerErr);
-        res.status(500).json({ error: outerErr.message });
+    } catch (outerError) {
+        console.error('Outer error:', outerError);
+        res.status(500).json({ error: 'Server error' });
     }
 };
 
@@ -426,5 +396,110 @@ exports.deleteAnalysis = async (req, res) => {
     } catch (err) {
         console.error('Delete analysis error:', err);
         res.status(500).json({ error: 'Failed to delete analysis' });
+    }
+};
+
+exports.addDescription = async (req, res) => {
+    try {
+        console.log('Starting description add...');
+        
+        if (req.user.role !== 'COMPANY_MEMBER') {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { sessionId } = req.params;
+        const { description } = req.body;
+
+        console.log('Adding description for session:', sessionId);
+        console.log('Description:', description);
+
+        // First check if description already exists
+        const existing = await db.query(
+            `SELECT id FROM analysis 
+             WHERE session_id = $1 AND type = 'DESCRIPTION'`,
+            [sessionId]
+        );
+
+        let result;
+        if (existing.rows.length > 0) {
+            // Update existing
+            result = await db.query(
+                `UPDATE analysis 
+                 SET description = $1, 
+                     updated_at = CURRENT_TIMESTAMP
+                 WHERE session_id = $2 AND type = 'DESCRIPTION'
+                 RETURNING *`,
+                [description, sessionId]
+            );
+        } else {
+            // Insert new
+            result = await db.query(
+                `INSERT INTO analysis 
+                 (session_id, analyst_id, description, type)
+                 VALUES ($1, $2, $3, 'DESCRIPTION')
+                 RETURNING *`,
+                [sessionId, req.user.id, description]
+            );
+        }
+
+        // Update session status to REVIEWED
+        await db.query(
+            `UPDATE sessions 
+             SET status = 'REVIEWED' 
+             WHERE id = $1`,
+            [sessionId]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error in addDescription:', error);
+        res.status(500).json({ 
+            error: 'Failed to add description',
+            details: error.message 
+        });
+    }
+};
+
+exports.updateAnalysisDescription = async (req, res) => {
+    try {
+        if (req.user.role !== 'COMPANY_MEMBER') {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { sessionId } = req.params;
+        const { description } = req.body;
+
+        // First, check if an analysis description already exists
+        const existingAnalysis = await db.query(
+            `SELECT id FROM analysis 
+             WHERE session_id = $1 AND type = 'DESCRIPTION'`,
+            [sessionId]
+        );
+
+        let result;
+        if (existingAnalysis.rows.length > 0) {
+            // Update existing description
+            result = await db.query(
+                `UPDATE analysis 
+                 SET description = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE session_id = $2 AND type = 'DESCRIPTION'
+                 RETURNING *`,
+                [description, sessionId]
+            );
+        } else {
+            // Create new description
+            result = await db.query(
+                `INSERT INTO analysis 
+                 (session_id, analyst_id, description, type)
+                 VALUES ($1, $2, $3, 'DESCRIPTION')
+                 RETURNING *`,
+                [sessionId, req.user.id, description]
+            );
+        }
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating description:', error);
+        res.status(500).json({ error: 'Failed to update description' });
     }
 }; 

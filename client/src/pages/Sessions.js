@@ -10,10 +10,11 @@ function Sessions() {
   const [isLoading, setIsLoading] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [teamCode, setTeamCode] = useState('');
+  const [selectedAnalyses, setSelectedAnalyses] = useState({});
 
   useEffect(() => {
     fetchSessions();
-    fetchUserTeams();
+    console.log('Sessions:', sessions);
   }, []);
 
   const fetchUserTeams = async () => {
@@ -142,6 +143,13 @@ function Sessions() {
             });
         }
     }
+  };
+
+  const handleAnalysisSelect = (sessionId, type) => {
+    setSelectedAnalyses(prev => ({
+      ...prev,
+      [sessionId]: type
+    }));
   };
 
   return (
@@ -304,8 +312,48 @@ function Sessions() {
                   </button>
                   <p>Team: {session.team_name}</p>
                   <p>URL: {session.footage_url}</p>
-                  <p>Status: {session.status}</p>
+                  <p>Status: <span style={{ 
+                    color: session.status === 'REVIEWED' ? '#4CAF50' : 'inherit'
+                  }}>{session.status}</span></p>
                   <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
+                  {session.analyses?.length > 0 && (
+                    <div>
+                        <select 
+                            onChange={(e) => handleAnalysisSelect(session.id, e.target.value)}
+                            value={selectedAnalyses[session.id] || ''}
+                            style={{
+                                backgroundColor: '#333',
+                                color: 'white',
+                                padding: '8px',
+                                margin: '10px 0'
+                            }}
+                        >
+                            <option value="">Select Analysis Type</option>
+                            <option value="heatmap">Heat Map</option>
+                            <option value="sprint_map">Sprint Map</option>
+                            <option value="game_momentum">Game Momentum</option>
+                        </select>
+
+                        {selectedAnalyses[session.id] && 
+                         session.analyses.find(a => a.type === selectedAnalyses[session.id]) && (
+                            <img 
+                                src={`http://localhost:3001${session.analyses.find(
+                                    a => a.type === selectedAnalyses[session.id]
+                                ).image_url}`}
+                                alt={selectedAnalyses[session.id]}
+                                onError={(e) => {
+                                    console.error('Image failed to load:', e.target.src);
+                                }}
+                                style={{
+                                    width: '100%',
+                                    maxWidth: '500px',
+                                    borderRadius: '4px',
+                                    marginTop: '10px'
+                                }}
+                            />
+                        )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

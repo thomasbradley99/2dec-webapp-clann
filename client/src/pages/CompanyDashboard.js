@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import NavBar from '../components/NavBar';
 import sessionService from '../services/sessionService';
+import debounce from 'lodash/debounce';
 
 const getUserFromStorage = () => JSON.parse(localStorage.getItem('user'));
 
@@ -23,6 +24,9 @@ function CompanyDashboard() {
         sprint_map: null,
         game_momentum: null
     });
+    const [description, setDescription] = useState('');
+    const [selectedSession, setSelectedSession] = useState(null);
+    const [analysisImages, setAnalysisImages] = useState({});
     
     const user = useMemo(() => getUserFromStorage(), []);
 
@@ -51,40 +55,70 @@ function CompanyDashboard() {
         }
     };
 
-    const handleFileSelect = (event, type) => {
+    const handleFileSelect = async (event, type, sessionId) => {
         const file = event.target.files[0];
-        if (file) {
-            setSelectedFiles(prev => ({
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('sessionId', sessionId);
+            formData.append('type', type);
+            
+            const response = await sessionService.addAnalysis(formData);
+            
+            // Update the images state with the new image
+            setAnalysisImages(prev => ({
                 ...prev,
-                [type]: file
+                [sessionId]: {
+                    ...prev[sessionId],
+                    [type]: response.image_url
+                }
             }));
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewUrls(prev => ({
-                    ...prev,
-                    [type]: reader.result
-                }));
-            };
-            reader.readAsDataURL(file);
+            
+            await fetchSessions();
+        } catch (err) {
+            console.error('Upload error:', err);
+            setError(err.message || 'Failed to add analysis');
         }
     };
 
     const handleAnalysisSubmit = async (sessionId) => {
-        const formData = new FormData();
-        
-        Object.entries(selectedFiles).forEach(([type, file]) => {
-            if (file) {
-                formData.append('analysis', file);
-                formData.append('type', type);
-            }
-        });
-        
-        formData.append('sessionId', sessionId);
-        formData.append('description', analysisDescription);
+        if (!Object.values(selectedFiles).some(file => file !== null)) {
+            console.log('No files selected, skipping upload');
+            return;
+        }
 
         try {
+            const formData = new FormData();
+            
+            // Debug logging
+            console.log('Files being uploaded:', selectedFiles);
+            
+            // Add session ID
+            formData.append('sessionId', sessionId);
+            
+            // Add files if they exist
+            Object.entries(selectedFiles).forEach(([type, file]) => {
+                if (file) {
+                    formData.append(type, file);
+                    formData.append('type', type);
+                    console.log(`Appending file of type ${type}`);
+                }
+            });
+
+            // Debug check
+            if ([...formData.entries()].length <= 1) {
+                setError('Please select a file to upload');
+                return;
+            }
+
             const response = await sessionService.addAnalysis(formData);
             
+            // Reset states after successful upload
             setSelectedFiles({
                 heatmap: null,
                 sprint_map: null,
@@ -95,8 +129,7 @@ function CompanyDashboard() {
                 sprint_map: null,
                 game_momentum: null
             });
-            setAnalysisDescription('');
-            setExpandedSession(null);
+            
             await fetchSessions();
         } catch (err) {
             console.error('Upload error:', err);
@@ -143,6 +176,116 @@ function CompanyDashboard() {
         } catch (err) {
             console.error('Delete analysis error:', err);
             setError(`Failed to delete ${type} analysis`);
+        }
+    };
+
+    const debouncedSaveDescription = useCallback(
+        debounce(async (sessionId, description) => {
+            try {
+                await sessionService.updateAnalysisDescription(sessionId, description);
+            } catch (err) {
+                setError('Failed to save description');
+            }
+        }, 1000),
+        []
+    );
+
+    const handleDescriptionChange = async (e, sessionId) => {
+        const newDescription = e.target.value;
+        setAnalysisDescription(newDescription);
+        
+        try {
+            await sessionService.addDescription(sessionId, newDescription);
+            await fetchSessions(); // Refresh to show updated description
+        } catch (err) {
+            console.error('Failed to update description:', err);
+            setError('Failed to update description');
+        }
+    };
+
+    const AnalysisImage = ({ session, type, title }) => {
+        const analysis = session.analyses?.find(a => a.type === type);
+        
+        return (
+            <div>
+                <h5 style={{ color: '#86C6E3', marginTop: '30px', marginBottom: '15px' }}>{title}</h5>
+                <div style={{ 
+                    backgroundColor: '#333333',
+                    padding: '20px',
+                    borderRadius: '4px',
+                    position: 'relative'
+                }}>
+                    {analysis ? (
+                        <>
+                            <div style={{ position: 'absolute', right: '20px', top: '20px' }}>
+                                <button
+                                    onClick={() => handleDeleteAnalysis(analysis.id, type)}
+                                    style={{
+                                        backgroundColor: '#FF4444',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        padding: '5px 10px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                            <img 
+                                src={`http://localhost:3001${analysis.image_url}`}
+                                alt={title}
+                                onError={(e) => {
+                                    console.error('Image failed to load:', e.target.src);
+                                    e.target.style.display = 'none';
+                                }}
+                                style={{ 
+                                    width: '100%',
+                                    maxWidth: '500px',
+                                    borderRadius: '4px',
+                                    marginBottom: '20px'
+                                }} 
+                            />
+                        </>
+                    ) : (
+                        <div style={{ textAlign: 'center', padding: '40px 20px' }}>
+                            <label style={{
+                                backgroundColor: '#1A5F7A',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                padding: '10px 20px',
+                                cursor: 'pointer'
+                            }}>
+                                Upload {title}
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleFileSelect(e, type, session.id)}
+                                    style={{ display: 'none' }}
+                                />
+                            </label>
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    const handleDelete = async (sessionId, type) => {
+        try {
+            await sessionService.deleteAnalysis(sessionId, type);
+            // Remove image from state
+            setAnalysisImages(prev => ({
+                ...prev,
+                [sessionId]: {
+                    ...prev[sessionId],
+                    [type]: null
+                }
+            }));
+            await fetchSessions();
+        } catch (err) {
+            setError(err.message || 'Failed to delete analysis');
         }
     };
 
@@ -265,7 +408,7 @@ function CompanyDashboard() {
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*"
-                                                                    onChange={(e) => handleFileSelect(e, 'heatmap')}
+                                                                    onChange={(e) => handleFileSelect(e, 'heatmap', session.id)}
                                                                     style={{ display: 'none' }}
                                                                 />
                                                             </label>
@@ -312,7 +455,7 @@ function CompanyDashboard() {
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*"
-                                                                    onChange={(e) => handleFileSelect(e, 'heatmap')}
+                                                                    onChange={(e) => handleFileSelect(e, 'heatmap', session.id)}
                                                                     style={{ display: 'none' }}
                                                                 />
                                                             </label>
@@ -341,7 +484,7 @@ function CompanyDashboard() {
                                                             <input
                                                                 type="file"
                                                                 accept="image/*"
-                                                                onChange={(e) => handleFileSelect(e, 'heatmap')}
+                                                                onChange={(e) => handleFileSelect(e, 'heatmap', session.id)}
                                                                 style={{ display: 'none' }}
                                                             />
                                                         </label>
@@ -389,7 +532,7 @@ function CompanyDashboard() {
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*"
-                                                                    onChange={(e) => handleFileSelect(e, 'sprint_map')}
+                                                                    onChange={(e) => handleFileSelect(e, 'sprint_map', session.id)}
                                                                     style={{ display: 'none' }}
                                                                 />
                                                             </label>
@@ -419,7 +562,7 @@ function CompanyDashboard() {
                                                             <input
                                                                 type="file"
                                                                 accept="image/*"
-                                                                onChange={(e) => handleFileSelect(e, 'sprint_map')}
+                                                                onChange={(e) => handleFileSelect(e, 'sprint_map', session.id)}
                                                                 style={{ display: 'none' }}
                                                             />
                                                         </label>
@@ -467,7 +610,7 @@ function CompanyDashboard() {
                                                                 <input
                                                                     type="file"
                                                                     accept="image/*"
-                                                                    onChange={(e) => handleFileSelect(e, 'game_momentum')}
+                                                                    onChange={(e) => handleFileSelect(e, 'game_momentum', session.id)}
                                                                     style={{ display: 'none' }}
                                                                 />
                                                             </label>
@@ -497,7 +640,7 @@ function CompanyDashboard() {
                                                             <input
                                                                 type="file"
                                                                 accept="image/*"
-                                                                onChange={(e) => handleFileSelect(e, 'game_momentum')}
+                                                                onChange={(e) => handleFileSelect(e, 'game_momentum', session.id)}
                                                                 style={{ display: 'none' }}
                                                             />
                                                         </label>
@@ -527,8 +670,8 @@ function CompanyDashboard() {
                                             <div>
                                                 <p style={{ marginBottom: '10px', color: '#888' }}>Description:</p>
                                                 <textarea
-                                                    value={analysisDescription || (session.analyses?.[0]?.description || '')}
-                                                    onChange={(e) => setAnalysisDescription(e.target.value)}
+                                                    value={analysisDescription}
+                                                    onChange={(e) => handleDescriptionChange(e, session.id)}
                                                     style={{
                                                         width: '100%',
                                                         padding: '10px',
