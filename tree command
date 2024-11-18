@@ -1,1 +1,1 @@
-tree -I 'node_modules|build|.git' -L 3
+tree -I 'node_modules|build|.git' -L 5
