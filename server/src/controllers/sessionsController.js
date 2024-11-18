@@ -219,7 +219,7 @@ exports.getAllSessions = async (req, res) => {
                 s.*,
                 t.name as team_name,
                 t.team_code,
-                u.email as uploaded_by_email,
+                u.email as coach_email,
                 a.id as analysis_id,
                 a.description as analysis_description,
                 a.image_url as analysis_image_url,

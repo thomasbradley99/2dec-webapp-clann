@@ -48,6 +48,16 @@ function CompanyDashboard() {
         fetchSessions(); // Refresh list after modal closes
     };
 
+    const handleStatusToggle = async (sessionId) => {
+        try {
+            await sessionService.toggleSessionStatus(sessionId);
+            fetchSessions(); // Refresh the list
+        } catch (err) {
+            setError('Failed to update status');
+            console.error('Error:', err);
+        }
+    };
+
     if (loading) return <div className="p-5">Loading sessions...</div>;
     if (error) return <div className="p-5 text-red-500">{error}</div>;
 
@@ -59,6 +69,7 @@ function CompanyDashboard() {
                 <SessionList 
                     sessions={sessions}
                     onSessionClick={handleSessionClick}
+                    onStatusToggle={handleStatusToggle}
                 />
 
                 {isModalOpen && selectedSession && (

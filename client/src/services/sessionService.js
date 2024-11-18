@@ -93,9 +93,15 @@ const sessionService = {
         }
     },
 
-    getAllSessions: async () => {
+    async getAllSessions() {
         try {
-            const response = await api.get('/sessions/all');
+            const user = JSON.parse(localStorage.getItem('user'));
+            const response = await api.get('/sessions/all', {
+                headers: {
+                    'Authorization': `Bearer ${user.token}`,
+                    'user-id': user.id
+                }
+            });
             return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to fetch sessions');
