@@ -14,34 +14,55 @@ function SessionCard({ session, onClick, onStatusToggle }) {
     };
 
     return (
-        <div className="p-4 bg-[#1a1a1a] relative">
+        <div 
+            style={{
+                padding: '15px',
+                marginBottom: '10px',
+                backgroundColor: '#1a1a1a',
+                borderRadius: '4px',
+                border: '1px solid #333',
+                position: 'relative'
+            }}
+        >
             <button
                 onClick={(e) => {
                     e.stopPropagation();
                     onStatusToggle(session.id);
                 }}
-                className={`absolute top-4 right-4 px-3 py-1 rounded text-sm ${
-                    session?.status === 'PENDING' 
-                    ? 'bg-red-500 text-white' 
-                    : 'bg-green-500 text-white'
-                }`}
+                style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    backgroundColor: session?.status === 'PENDING' ? '#FF4444' : '#4CAF50',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    padding: '5px 10px',
+                    cursor: 'pointer'
+                }}
             >
                 {session?.status || 'Unknown'}
             </button>
 
             <p>Team: {session.team_name}</p>
-            <p className="text-gray-400">Coach: {session?.coach_email}</p>
-            <p className="text-gray-400">URL: {session.footage_url}</p>
-            <p className="text-gray-400">Uploaded: {formatDate(session.created_at)}</p>
-            <p className="text-gray-400 mt-2">
-                Analysis Status: {session?.analyses?.length > 0 
-                    ? `${session.analyses.length} analyses uploaded` 
-                    : 'No analyses uploaded yet'
-                }
-            </p>
+            <p>Coach: {session?.coach_email}</p>
+            <p>URL: {session.footage_url}</p>
+            <p>Uploaded: {formatDate(session.created_at)}</p>
+            <p>Analysis Status: {session?.analyses?.length > 0 
+                ? `${session.analyses.length} analyses uploaded` 
+                : 'No analyses uploaded yet'
+            }</p>
+
             <button 
-                className="text-blue-400 hover:underline mt-2"
                 onClick={onClick}
+                style={{
+                    marginTop: '10px',
+                    color: '#3B82F6',
+                    cursor: 'pointer',
+                    background: 'none',
+                    border: 'none',
+                    padding: 0
+                }}
             >
                 View/Upload →
             </button>

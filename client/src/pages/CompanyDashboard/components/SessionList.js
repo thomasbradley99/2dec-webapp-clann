@@ -3,7 +3,7 @@ import SessionCard from './SessionCard';
 
 function SessionList({ sessions, onSessionClick, onStatusToggle }) {
     return (
-        <div className="space-y-4">
+        <div style={{ marginTop: '30px' }}>
             {sessions.map(session => (
                 <SessionCard
                     key={session.id}
