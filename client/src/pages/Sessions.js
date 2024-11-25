@@ -84,26 +84,23 @@ function Sessions() {
 
   const handleJoinTeam = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
-    setFeedback(null);
-
     if (!teamCode.trim()) {
       setFeedback({
         type: 'error',
         message: 'Please enter a team code'
       });
-      setIsLoading(false);
       return;
     }
 
     try {
-      await sessionService.joinTeam(teamCode.trim());
+      setIsLoading(true);
+      const response = await teamService.joinTeam(teamCode);
       setFeedback({
         type: 'success',
-        message: 'Successfully joined team!'
+        message: `Successfully joined team ${response.team_name}`
       });
-      setTeamCode('');
-      fetchSessions();
+      setTeamCode(''); // Clear the input
+      fetchSessions(); // Refresh sessions to show new team's sessions
     } catch (err) {
       setFeedback({
         type: 'error',
@@ -116,32 +113,34 @@ function Sessions() {
 
   const fetchSessions = async () => {
     try {
-      const response = await sessionService.getSessions();
-      setSessions(response);
+        console.log('Attempting to fetch sessions...');  // Debug log
+        const response = await sessionService.getSessions();
+        console.log('Sessions fetched:', response);  // Debug log
+        setSessions(response || []);
     } catch (err) {
-      console.error('Failed to fetch sessions:', err);
-      setFeedback({
-        type: 'error',
-        message: 'Failed to fetch sessions'
-      });
+        console.error('Failed to fetch sessions:', err);
+        setFeedback({
+            type: 'error',
+            message: err.message || 'Failed to fetch sessions'
+        });
+        setSessions([]);
     }
   };
 
   const handleDelete = async (sessionId) => {
-    if (window.confirm('Are you sure you want to delete this session?')) {
-        try {
-            await sessionService.deleteSession(sessionId);
-            setFeedback({
-                type: 'success',
-                message: 'Session deleted successfully'
-            });
-            fetchSessions();
-        } catch (err) {
-            setFeedback({
-                type: 'error',
-                message: err.message || 'Failed to delete session'
-            });
-        }
+    try {
+      await sessionService.deleteSession(sessionId);
+      setFeedback({
+        type: 'success',
+        message: 'Session deleted successfully'
+      });
+      // Refresh sessions list
+      fetchSessions();
+    } catch (err) {
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to delete session'
+      });
     }
   };
 
@@ -247,6 +246,7 @@ function Sessions() {
                 value={teamCode}
                 onChange={(e) => setTeamCode(e.target.value)}
                 placeholder="Enter Team Code"
+                maxLength={6}
                 style={{ 
                   width: '100%', 
                   marginBottom: '10px', 
@@ -258,16 +258,16 @@ function Sessions() {
                 }}
               />
               <button 
-                type="submit"
-                disabled={isLoading || !teamCode.trim()}
+                type="submit" 
+                disabled={isLoading}
                 style={{
                   width: '100%',
                   padding: '10px',
-                  backgroundColor: isLoading || !teamCode.trim() ? '#014422' : '#016F33',
+                  backgroundColor: isLoading ? '#014422' : '#016F33',
                   color: 'white',
                   border: 'none',
                   borderRadius: '4px',
-                  cursor: isLoading || !teamCode.trim() ? 'not-allowed' : 'pointer'
+                  cursor: isLoading ? 'not-allowed' : 'pointer'
                 }}
               >
                 {isLoading ? 'Joining...' : 'Join Team'}
@@ -278,82 +278,29 @@ function Sessions() {
 
         <div style={{ marginTop: '30px' }}>
           <h3>Your Sessions</h3>
-          {sessions.length === 0 ? (
+          {isLoading ? (
+            <p>Loading sessions...</p>
+          ) : sessions.length === 0 ? (
             <p>No sessions uploaded yet.</p>
           ) : (
             <div>
               {sessions.map(session => (
-                <div 
-                  key={session.id}
-                  style={{
-                    padding: '15px',
-                    marginBottom: '10px',
-                    backgroundColor: '#1a1a1a',
-                    borderRadius: '4px',
-                    border: '1px solid #333',
-                    position: 'relative'
-                  }}
-                >
-                  <button
+                <div key={session.id} className="session-card">
+                  <p>Team: {session.team_name}</p>
+                  <p>URL: {session.footage_url}</p>
+                  <p>Status: {session.status}</p>
+                  {session.analysis_description && (
+                    <div className="analysis-section">
+                      <h4>Analysis</h4>
+                      <p>{session.analysis_description}</p>
+                    </div>
+                  )}
+                  <button 
                     onClick={() => handleDelete(session.id)}
-                    style={{
-                      position: 'absolute',
-                      top: '10px',
-                      right: '10px',
-                      backgroundColor: '#FF4444',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      padding: '5px 10px',
-                      cursor: 'pointer'
-                    }}
+                    className="delete-button"
                   >
                     Delete
                   </button>
-                  <p>Team: {session.team_name}</p>
-                  <p>URL: {session.footage_url}</p>
-                  <p>Status: <span style={{ 
-                    color: session.status === 'REVIEWED' ? '#4CAF50' : 'inherit'
-                  }}>{session.status}</span></p>
-                  <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
-                  {session.analyses?.length > 0 && (
-                    <div>
-                        <select 
-                            onChange={(e) => handleAnalysisSelect(session.id, e.target.value)}
-                            value={selectedAnalyses[session.id] || ''}
-                            style={{
-                                backgroundColor: '#333',
-                                color: 'white',
-                                padding: '8px',
-                                margin: '10px 0'
-                            }}
-                        >
-                            <option value="">Select Analysis Type</option>
-                            <option value="heatmap">Heat Map</option>
-                            <option value="sprint_map">Sprint Map</option>
-                            <option value="game_momentum">Game Momentum</option>
-                        </select>
-
-                        {selectedAnalyses[session.id] && 
-                         session.analyses.find(a => a.type === selectedAnalyses[session.id]) && (
-                            <img 
-                                src={`http://localhost:3001${session.analyses.find(
-                                    a => a.type === selectedAnalyses[session.id]
-                                ).image_url}`}
-                                alt={selectedAnalyses[session.id]}
-                                onError={(e) => {
-                                    console.error('Image failed to load:', e.target.src);
-                                }}
-                                style={{
-                                    width: '100%',
-                                    maxWidth: '500px',
-                                    borderRadius: '4px',
-                                    marginTop: '10px'
-                                }}
-                            />
-                        )}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>

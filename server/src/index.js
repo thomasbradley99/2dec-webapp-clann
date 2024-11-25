@@ -22,9 +22,9 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.use('/api/auth', authRoutes);        // Handle login/register
-app.use('/api/sessions', sessionsRoutes); // Handle game sessions
-app.use('/api/teams', teamsRoutes);      // Add this
+app.use('/api/auth', authRoutes);        // Add /api prefix
+app.use('/api/sessions', sessionsRoutes); // Add /api prefix
+app.use('/api/teams', teamsRoutes);      // Already has /api prefix
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -24,12 +24,12 @@ const teamService = {
 
     joinTeam: async (teamCode) => {
         try {
-            const response = await api.post('/teams/join', {
-                team_code: teamCode
+            const response = await api.post('/teams/join', { 
+                team_code: teamCode.trim().toUpperCase() 
             });
             return response.data;
         } catch (error) {
-            throw error.response?.data?.error || 'Failed to join team';
+            throw new Error(error.response?.data?.error || 'Failed to join team');
         }
     },
 

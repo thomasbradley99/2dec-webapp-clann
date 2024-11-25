@@ -121,55 +121,30 @@ exports.createSession = async (req, res) => {
 exports.getSessions = async (req, res) => {
     const userId = req.user.id;
     try {
+        // Add console.log for debugging
+        console.log('Fetching sessions for user:', userId);
+        
         const result = await db.query(`
             SELECT 
                 s.*,
                 t.name as team_name,
                 t.team_code,
-                u.email as uploaded_by_email,
-                a.id as analysis_id,
-                a.description as analysis_description,
-                a.image_url as analysis_image_url,
-                au.email as analyst_email
+                u.email as uploaded_by_email
             FROM Sessions s
             INNER JOIN Teams t ON s.team_id = t.id
             INNER JOIN TeamMembers tm ON t.id = tm.team_id
             INNER JOIN Users u ON s.uploaded_by = u.id
-            LEFT JOIN Analysis a ON s.id = a.session_id
-            LEFT JOIN Users au ON a.analyst_id = au.id
             WHERE tm.user_id = $1
-            ORDER BY s.created_at DESC, a.created_at DESC
+            ORDER BY s.created_at DESC
         `, [userId]);
         
-        // Group analyses by session
-        const sessionsWithAnalyses = result.rows.reduce((acc, row) => {
-            const sessionId = row.id;
-            if (!acc[sessionId]) {
-                acc[sessionId] = {
-                    ...row,
-                    analyses: []
-                };
-                delete acc[sessionId].analysis_id;
-                delete acc[sessionId].analysis_description;
-                delete acc[sessionId].analysis_image_url;
-                delete acc[sessionId].analyst_email;
-            }
-            if (row.analysis_id) {
-                acc[sessionId].analyses.push({
-                    id: row.analysis_id,
-                    description: row.analysis_description,
-                    image_url: row.analysis_image_url,
-                    analyst_email: row.analyst_email
-                });
-            }
-            return acc;
-        }, {});
-
-        console.log('Fetched sessions with analyses for user:', userId);
-        res.json(Object.values(sessionsWithAnalyses));
+        // Add console.log for debugging
+        console.log('Query result:', result.rows);
+        
+        res.json(result.rows);
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Failed to fetch sessions: ' + err.message });
     }
 };
 
@@ -179,31 +154,28 @@ exports.deleteSession = async (req, res) => {
         await db.query('BEGIN');
 
         // Get the team ID associated with the session
-        const sessionResult = await db.query("SELECT team_id FROM Sessions WHERE id = $1", [id]);
+        const sessionResult = await db.query(
+            "SELECT team_id FROM Sessions WHERE id = $1", 
+            [id]
+        );
+        
         if (sessionResult.rows.length === 0) {
+            await db.query('ROLLBACK');
             return res.status(404).json({ error: 'Session not found' });
         }
-        const teamId = sessionResult.rows[0].team_id;
 
-        // First delete associated analyses
-        await db.query("DELETE FROM Analysis WHERE session_id = $1", [id]);
-
-        // Then delete the session
-        await db.query("DELETE FROM Sessions WHERE id = $1", [id]);
-
-        // Check if there are any remaining sessions for the team
-        const remainingSessions = await db.query("SELECT COUNT(*) FROM Sessions WHERE team_id = $1", [teamId]);
-        if (parseInt(remainingSessions.rows[0].count, 10) === 0) {
-            await db.query("DELETE FROM TeamMembers WHERE team_id = $1", [teamId]);
-            await db.query("DELETE FROM Teams WHERE id = $1", [teamId]);
-        }
+        // Delete the session (no need to delete analysis separately)
+        await db.query(
+            "DELETE FROM Sessions WHERE id = $1",
+            [id]
+        );
 
         await db.query('COMMIT');
-        res.json({ message: "Session and associated data deleted successfully" });
+        res.json({ message: 'Session deleted successfully' });
     } catch (err) {
         await db.query('ROLLBACK');
-        console.error('Session deletion failed:', err);
-        res.status(500).json({ error: err.message });
+        console.error('Failed to delete session:', err);
+        res.status(500).json({ error: 'Failed to delete session' });
     }
 };
 

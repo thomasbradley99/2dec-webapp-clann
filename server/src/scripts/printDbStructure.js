@@ -16,47 +16,22 @@ const pool = new Pool({
 
 async function printDatabaseStructure() {
     try {
-        // Your existing structure printing code...
-
-        // Add these new sections:
-        console.log('\n=== ANALYSIS DATA ===');
-        const analyses = await pool.query(`
-            SELECT 
-                a.id,
-                a.session_id,
-                a.type,
-                a.image_url,
-                a.created_at,
-                s.status as session_status
-            FROM analysis a
-            LEFT JOIN sessions s ON a.session_id = s.id
-            ORDER BY a.created_at DESC;
+        // Get tables
+        const tables = await pool.query(`
+            SELECT table_name 
+            FROM information_schema.tables 
+            WHERE table_schema = 'public'
         `);
-        console.table(analyses.rows);
+        
+        console.log('\n=== TABLES ===');
+        console.table(tables.rows);
 
-        console.log('\n=== ANALYSIS BY TYPE ===');
-        const typeCount = await pool.query(`
-            SELECT 
-                type, 
-                COUNT(*) as count,
-                array_agg(session_id) as session_ids
-            FROM analysis
-            GROUP BY type;
+        // Get Sessions structure
+        console.log('\n=== SESSIONS TABLE ===');
+        const sessions = await pool.query(`
+            SELECT * FROM sessions LIMIT 5;
         `);
-        console.table(typeCount.rows);
-
-        console.log('\n=== SESSIONS WITH ANALYSIS COUNT ===');
-        const sessionCount = await pool.query(`
-            SELECT 
-                s.id as session_id,
-                s.status,
-                COUNT(a.id) as analysis_count,
-                array_agg(a.type) as analysis_types
-            FROM sessions s
-            LEFT JOIN analysis a ON s.id = a.session_id
-            GROUP BY s.id, s.status;
-        `);
-        console.table(sessionCount.rows);
+        console.table(sessions.rows);
 
     } catch (error) {
         console.error('Error:', error);
@@ -65,4 +40,4 @@ async function printDatabaseStructure() {
     }
 }
 
-printDatabaseStructure().catch(console.error); 
+printDatabaseStructure(); 
