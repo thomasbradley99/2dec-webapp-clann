@@ -1,9 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const authRoutes = require('./routes/auth');
-const sessionsRoutes = require('./routes/sessions');
-const teamsRoutes = require('./routes/teams');
+const authRoutes = require('./api/auth');
+const sessionsRoutes = require('./api/sessions');
+const teamsRoutes = require('./api/teams');
 
 // Create Express server
 const app = express();

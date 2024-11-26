@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const sessionsController = require("../controllers/sessionsController");
+const sessionsController = require('./sessionsController');
 const auth = require("../middleware/auth");
 const multer = require('multer');
 const path = require('path');

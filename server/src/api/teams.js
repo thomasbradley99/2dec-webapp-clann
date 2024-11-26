@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const teamsController = require("../controllers/teamsController");
+const teamsController = require("./teamsController");
 const auth = require("../middleware/auth");
 
 router.get("/user", auth, teamsController.getUserTeams);

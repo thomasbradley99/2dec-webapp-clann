@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SessionList from './components/SessionList';
 import AnalysisModal from './components/AnalysisModal';
-import NavBar from '../../components/common/NavBar';
+import NavBar from '../../components/ui/NavBar';
 import sessionService from '../../services/sessionService';
 
 const getUserFromStorage = () => JSON.parse(localStorage.getItem('user'));
