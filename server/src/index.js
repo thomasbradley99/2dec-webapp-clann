@@ -15,6 +15,9 @@ app.use(express.json());
 // Add this line to serve the uploads directory
 app.use('/analysis-images', express.static(path.join(__dirname, '../public/analysis-images')));
 
+// Add this line to serve files from storage/analysis-images
+app.use('/analysis-images', express.static(path.join(__dirname, '../storage/analysis-images')));
+
 // Middleware to log all incoming requests
 app.use((req, res, next) => {
     console.log(`Incoming request: ${req.method} ${req.url}`);

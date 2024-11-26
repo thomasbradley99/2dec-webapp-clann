@@ -8,7 +8,7 @@ const path = require('path');
 // Configure multer first
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'public/analysis-images/');
+        cb(null, path.join(__dirname, '../../storage/analysis-images/'));
     },
     filename: function (req, file, cb) {
         cb(null, 'analysis-' + Date.now() + path.extname(file.originalname));
@@ -33,7 +33,7 @@ router.delete("/:id", auth, sessionsController.deleteSession);
 router.get('/all', auth, sessionsController.getAllSessions);
 router.post('/analysis', auth, upload.single('file'), sessionsController.addAnalysis);
 router.put('/:sessionId/toggle-status', auth, sessionsController.toggleSessionStatus);
-router.delete('/analysis/:analysisId', auth, sessionsController.deleteAnalysis);
+router.delete('/analysis/:sessionId/:type', auth, sessionsController.deleteAnalysis);
 router.post('/:sessionId/description', auth, sessionsController.addDescription);
 router.put('/:sessionId/description', auth, sessionsController.updateAnalysisDescription);
 

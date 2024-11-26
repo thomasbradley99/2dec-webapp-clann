@@ -70,9 +70,10 @@ const sessionService = {
         }
     },
 
-    deleteAnalysis: async (analysisId) => {
+    deleteAnalysis: async (sessionId, type) => {
         try {
-            await api.delete(`/sessions/analysis/${analysisId}`);
+            const response = await api.delete(`/sessions/analysis/${sessionId}/${type}`);
+            return response.data;
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to delete analysis');
         }

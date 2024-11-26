@@ -1,29 +1,7 @@
 const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
-const multer = require('multer');
 const path = require('path');
 const { MAX_TEAM_MEMBERS } = require('../constants');
-
-// Configure multer for image uploads
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, 'public/analysis-images/') // Make sure this directory exists
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'analysis-' + Date.now() + path.extname(file.originalname))
-    }
-});
-
-const upload = multer({ 
-    storage: storage,
-    limits: { fileSize: 5000000 }, // 5MB limit
-    fileFilter: function (req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-            return cb(new Error('Only image files are allowed!'));
-        }
-        cb(null, true);
-    }
-}).single('file');
 
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
@@ -217,7 +195,7 @@ exports.addAnalysis = async (req, res) => {
             return res.status(400).json({ error: 'Missing sessionId or type' });
         }
 
-        const imageUrl = `/analysis-images/${req.file.filename}`;
+        const imageUrl = `http://localhost:3001/analysis-images/${req.file.filename}`;
         console.log('Processing upload:', { sessionId, type, imageUrl });
         
         // Update the appropriate column based on analysis type
@@ -327,41 +305,30 @@ exports.toggleSessionStatus = async (req, res) => {
 
 exports.deleteAnalysis = async (req, res) => {
     try {
-        const { analysisId, type } = req.params;
+        if (req.user.role !== 'COMPANY_MEMBER') {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { sessionId, type } = req.params;
         
-        if (!type) {
-            return res.status(400).json({ error: 'Analysis type is required' });
-        }
-
-        let updateQuery;
+        let updateColumn;
         switch(type.toUpperCase()) {
-            case 'HEATMAP':
-                updateQuery = `
-                    UPDATE Sessions 
-                    SET analysis_image1_url = NULL
-                    WHERE id = $1
-                    RETURNING *`;
-                break;
-            case 'SPRINT_MAP':
-                updateQuery = `
-                    UPDATE Sessions 
-                    SET analysis_image2_url = NULL
-                    WHERE id = $1
-                    RETURNING *`;
-                break;
-            case 'GAME_MOMENTUM':
-                updateQuery = `
-                    UPDATE Sessions 
-                    SET analysis_image3_url = NULL
-                    WHERE id = $1
-                    RETURNING *`;
-                break;
-            default:
-                return res.status(400).json({ error: 'Invalid analysis type' });
+            case 'HEATMAP': updateColumn = 'analysis_image1_url'; break;
+            case 'SPRINT_MAP': updateColumn = 'analysis_image2_url'; break;
+            case 'GAME_MOMENTUM': updateColumn = 'analysis_image3_url'; break;
+            default: return res.status(400).json({ error: 'Invalid analysis type' });
         }
 
-        const result = await db.query(updateQuery, [analysisId]);
+        const query = `
+            UPDATE Sessions 
+            SET ${updateColumn} = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *
+        `;
 
+        const result = await db.query(query, [sessionId]);
+        
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Session not found' });
         }
