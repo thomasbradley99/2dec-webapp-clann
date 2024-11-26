@@ -35,6 +35,39 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to delete session');
         }
+    },
+
+    getAllSessions: async () => {
+        try {
+            const response = await api.get('/sessions/all');
+            return response.data;
+        } catch (error) {
+            console.error('Failed to fetch all sessions:', error);
+            throw new Error(error.response?.data?.error || 'Failed to fetch all sessions');
+        }
+    },
+
+    toggleSessionStatus: async (sessionId) => {
+        try {
+            const response = await api.put(`/sessions/${sessionId}/toggle-status`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to toggle session status');
+        }
+    },
+
+    addAnalysis: async (formData) => {
+        try {
+            const response = await api.post('/sessions/analysis', formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error('Add analysis error:', error);
+            throw new Error(error.response?.data?.error || 'Failed to add analysis');
+        }
     }
 };
 

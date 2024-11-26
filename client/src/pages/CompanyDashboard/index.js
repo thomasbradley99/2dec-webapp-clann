@@ -58,6 +58,12 @@ function CompanyDashboard() {
         }
     };
 
+    const handleError = (errorMessage) => {
+        setError(errorMessage);
+        // Optionally close the modal
+        setIsModalOpen(false);
+    };
+
     if (loading) return <div className="p-5">Loading sessions...</div>;
     if (error) return <div className="p-5 text-red-500">{error}</div>;
 
@@ -66,17 +72,30 @@ function CompanyDashboard() {
             <div className="p-5 max-w-7xl mx-auto">
                 <h2 className="text-2xl mb-6">Company Dashboard</h2>
                 
+                {error && (
+                    <div className="error-message mb-4 p-3 bg-red-600 text-white rounded">
+                        {error}
+                    </div>
+                )}
+                
                 <SessionList 
                     sessions={sessions}
-                    onSessionClick={handleSessionClick}
+                    onSessionClick={(session) => {
+                        setSelectedSession(session);
+                        setIsModalOpen(true);
+                    }}
                     onStatusToggle={handleStatusToggle}
                 />
 
                 {isModalOpen && selectedSession && (
                     <AnalysisModal
                         session={selectedSession}
-                        onClose={handleModalClose}
-                        onError={setError}
+                        onClose={() => {
+                            setIsModalOpen(false);
+                            setSelectedSession(null);
+                            fetchSessions(); // Refresh after close
+                        }}
+                        onError={handleError}
                     />
                 )}
             </div>

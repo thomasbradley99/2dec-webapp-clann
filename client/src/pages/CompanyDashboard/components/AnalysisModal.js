@@ -2,60 +2,91 @@ import React, { useState } from 'react';
 import sessionService from '../../../services/sessionService';
 
 function AnalysisModal({ session, onClose, onError }) {
-    const [uploading, setUploading] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+    const [feedback, setFeedback] = useState(null);
 
-    const handleFileSelect = async (type) => {
-        const input = document.createElement('input');
-        input.type = 'file';
-        input.accept = 'image/*';
-        
-        input.onchange = async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
+    const handleFileSelect = async (event, type) => {
+        const file = event.target.files[0];
+        if (!file) {
+            console.log('No file selected');
+            return;
+        }
 
-            setUploading(true);
-            try {
-                const formData = new FormData();
-                formData.append('file', file);
-                formData.append('sessionId', session.id);
-                formData.append('type', type);
-                
-                await sessionService.addAnalysis(formData);
-                onClose(); // Close and refresh parent
-            } catch (err) {
-                onError(err.message || 'Upload failed');
-            } finally {
-                setUploading(false);
-            }
-        };
+        try {
+            setIsUploading(true);
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('sessionId', session.id);
+            formData.append('type', type);
 
-        input.click();
+            console.log('Uploading file:', {
+                fileName: file.name,
+                fileSize: file.size,
+                fileType: file.type,
+                sessionId: session.id,
+                type: type
+            });
+
+            const result = await sessionService.addAnalysis(formData);
+            console.log('Upload result:', result);
+            
+            setFeedback({
+                type: 'success',
+                message: 'Analysis uploaded successfully'
+            });
+            
+            onClose();
+        } catch (err) {
+            console.error('Upload error:', err);
+            setFeedback({
+                type: 'error',
+                message: err.message || 'Failed to upload analysis'
+            });
+        } finally {
+            setIsUploading(false);
+        }
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-            <div className="bg-gray-800 rounded-lg p-6 max-w-2xl w-full">
-                <div className="flex justify-between mb-4">
-                    <h3 className="text-xl">{session.team_name}</h3>
-                    <button onClick={onClose}>×</button>
+        <div className="modal-overlay">
+            <div className="modal-content">
+                {feedback && (
+                    <div className={`feedback ${feedback.type}`}>
+                        {feedback.message}
+                    </div>
+                )}
+
+                <div className="upload-section">
+                    <h3>Upload Analysis</h3>
+                    <div className="upload-buttons">
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileSelect(e, 'HEATMAP')}
+                            disabled={isUploading}
+                        />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileSelect(e, 'SPRINT_MAP')}
+                            disabled={isUploading}
+                        />
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handleFileSelect(e, 'GAME_MOMENTUM')}
+                            disabled={isUploading}
+                        />
+                    </div>
                 </div>
 
-                <div className="space-y-4">
-                    {['HEATMAP', 'SPRINT_MAP', 'GAME_MOMENTUM'].map(type => (
-                        <div key={type}>
-                            <h4 className="text-blue-400 mb-2">
-                                {type.replace('_', ' ')}
-                            </h4>
-                            <button
-                                onClick={() => handleFileSelect(type)}
-                                className="w-full py-4 border-2 border-dashed border-gray-600 rounded hover:border-blue-400"
-                                disabled={uploading}
-                            >
-                                {uploading ? 'Uploading...' : `Upload ${type.replace('_', ' ')}`}
-                            </button>
-                        </div>
-                    ))}
-                </div>
+                <button 
+                    onClick={onClose}
+                    disabled={isUploading}
+                    className="close-button"
+                >
+                    {isUploading ? 'Uploading...' : 'Close'}
+                </button>
             </div>
         </div>
     );

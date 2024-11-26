@@ -181,58 +181,24 @@ exports.deleteSession = async (req, res) => {
 
 // Add this new function to get all sessions for company users
 exports.getAllSessions = async (req, res) => {
-    if (req.user.role !== 'COMPANY_MEMBER') {
-        return res.status(403).json({ error: 'Not authorized' });
-    }
-
     try {
+        // Get all sessions with team and user info
         const result = await db.query(`
             SELECT 
                 s.*,
                 t.name as team_name,
                 t.team_code,
-                u.email as coach_email,
-                a.id as analysis_id,
-                a.description as analysis_description,
-                a.image_url as analysis_image_url,
-                au.email as analyst_email
+                u.email as uploaded_by_email
             FROM Sessions s
-            INNER JOIN Teams t ON s.team_id = t.id
-            INNER JOIN Users u ON s.uploaded_by = u.id
-            LEFT JOIN Analysis a ON s.id = a.session_id
-            LEFT JOIN Users au ON a.analyst_id = au.id
-            ORDER BY s.created_at DESC, a.created_at DESC
+            LEFT JOIN Teams t ON s.team_id = t.id
+            LEFT JOIN Users u ON s.uploaded_by = u.id
+            ORDER BY s.created_at DESC
         `);
-        
-        // Group analyses by session
-        const sessionsWithAnalyses = result.rows.reduce((acc, row) => {
-            const sessionId = row.id;
-            if (!acc[sessionId]) {
-                acc[sessionId] = {
-                    ...row,
-                    analyses: []
-                };
-                delete acc[sessionId].analysis_id;
-                delete acc[sessionId].analysis_description;
-                delete acc[sessionId].analysis_image_url;
-                delete acc[sessionId].analyst_email;
-            }
-            if (row.analysis_id) {
-                acc[sessionId].analyses.push({
-                    id: row.analysis_id,
-                    description: row.analysis_description,
-                    image_url: row.analysis_image_url,
-                    analyst_email: row.analyst_email
-                });
-            }
-            return acc;
-        }, {});
 
-        console.log('Fetched all sessions with analyses for company user');
-        res.json(Object.values(sessionsWithAnalyses));
+        res.json(result.rows);
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ error: 'Failed to fetch sessions' });
     }
 };
 
@@ -242,46 +208,65 @@ exports.addAnalysis = async (req, res) => {
             return res.status(403).json({ error: 'Not authorized' });
         }
 
-        upload(req, res, async function(err) {
-            if (err) {
-                console.error('Upload error:', err);
-                return res.status(400).json({ error: err.message });
-            }
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
 
-            try {
-                const { sessionId, type } = req.body;
-                // Convert type to uppercase
-                const upperType = type.toUpperCase();  // 'heatmap' becomes 'HEATMAP'
-                
-                const imageUrl = `/analysis-images/${req.file.filename}`;
-                
-                console.log('Attempting DB insert with:', {
-                    sessionId,
-                    userId: req.user.id,
-                    imageUrl,
-                    type: upperType  // Use the uppercase version
-                });
+        const { sessionId, type } = req.body;
+        if (!sessionId || !type) {
+            return res.status(400).json({ error: 'Missing sessionId or type' });
+        }
 
-                const result = await db.query(
-                    `INSERT INTO analysis 
-                     (session_id, analyst_id, image_url, type)
-                     VALUES ($1, $2, $3, $4)
-                     RETURNING *`,
-                    [sessionId, req.user.id, imageUrl, upperType]  // Use the uppercase version
-                );
+        const imageUrl = `/analysis-images/${req.file.filename}`;
+        console.log('Processing upload:', { sessionId, type, imageUrl });
+        
+        // Update the appropriate column based on analysis type
+        let updateQuery;
+        switch(type.toUpperCase()) {
+            case 'HEATMAP':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image1_url = $1,
+                        reviewed_by = $2,
+                        status = 'REVIEWED',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $3
+                    RETURNING *`;
+                break;
+            case 'SPRINT_MAP':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image2_url = $1,
+                        reviewed_by = $2,
+                        status = 'REVIEWED',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $3
+                    RETURNING *`;
+                break;
+            case 'GAME_MOMENTUM':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image3_url = $1,
+                        reviewed_by = $2,
+                        status = 'REVIEWED',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $3
+                    RETURNING *`;
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid analysis type' });
+        }
 
-                res.json(result.rows[0]);
-            } catch (error) {
-                console.error('Analysis processing error:', error);
-                res.status(500).json({ 
-                    error: 'Failed to process analysis',
-                    details: error.message 
-                });
-            }
-        });
-    } catch (outerError) {
-        console.error('Outer error:', outerError);
-        res.status(500).json({ error: 'Server error' });
+        const result = await db.query(updateQuery, [imageUrl, req.user.id, sessionId]);
+        
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Analysis upload error:', err);
+        res.status(500).json({ error: err.message || 'Failed to process analysis' });
     }
 };
 
@@ -342,27 +327,44 @@ exports.toggleSessionStatus = async (req, res) => {
 
 exports.deleteAnalysis = async (req, res) => {
     try {
-        const { analysisId } = req.params;
+        const { analysisId, type } = req.params;
         
-        if (!analysisId) {
-            return res.status(400).json({ error: 'Analysis ID is required' });
+        if (!type) {
+            return res.status(400).json({ error: 'Analysis type is required' });
         }
 
-        // First check if the analysis exists and belongs to a session
-        const analysisCheck = await db.query(
-            'SELECT * FROM Analysis WHERE id = $1',
-            [analysisId]
-        );
-
-        if (analysisCheck.rows.length === 0) {
-            return res.status(404).json({ error: 'Analysis not found' });
+        let updateQuery;
+        switch(type.toUpperCase()) {
+            case 'HEATMAP':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image1_url = NULL
+                    WHERE id = $1
+                    RETURNING *`;
+                break;
+            case 'SPRINT_MAP':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image2_url = NULL
+                    WHERE id = $1
+                    RETURNING *`;
+                break;
+            case 'GAME_MOMENTUM':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_image3_url = NULL
+                    WHERE id = $1
+                    RETURNING *`;
+                break;
+            default:
+                return res.status(400).json({ error: 'Invalid analysis type' });
         }
 
-        // Delete the analysis
-        await db.query(
-            'DELETE FROM Analysis WHERE id = $1',
-            [analysisId]
-        );
+        const result = await db.query(updateQuery, [analysisId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
 
         res.json({ message: 'Analysis deleted successfully' });
     } catch (err) {
