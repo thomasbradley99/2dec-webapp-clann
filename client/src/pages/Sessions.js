@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import sessionService from '../services/sessionService';
 import teamService from '../services/teamService';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/common/NavBar';
 
 function Sessions() {
   const [url, setUrl] = useState('');

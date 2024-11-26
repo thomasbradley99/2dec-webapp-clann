@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import teamService from '../services/teamService';
 import authService from '../services/authService';
-import NavBar from '../components/NavBar';
+import NavBar from '../components/common/NavBar';
 
 function Profile() {
     const navigate = useNavigate();

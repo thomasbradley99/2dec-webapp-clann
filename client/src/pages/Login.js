@@ -2,6 +2,10 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactPlayer from 'react-player';
 import userService from '../services/userService';
+import activityImg from '../assets/images/activity.jpeg';
+import heatmapImg from '../assets/images/heatmap.jpeg';
+import sprintsImg from '../assets/images/sprints.jpeg';
+import clannLogo from '../assets/images/clann-logo.png';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -77,7 +81,7 @@ function Login() {
           textAlign: 'center'
         }}>
           <img 
-            src="/login-media/activity.jpeg" 
+            src={activityImg} 
             alt="Performance Tracking"
             style={{
               width: '100%',
@@ -108,7 +112,7 @@ function Login() {
           textAlign: 'center'
         }}>
           <img 
-            src="/login-media/heatmap.jpeg" 
+            src={heatmapImg} 
             alt="Heat Mapping"
             style={{
               width: '100%',
@@ -139,7 +143,7 @@ function Login() {
           textAlign: 'center'
         }}>
           <img 
-            src="/login-media/sprints.jpeg" 
+            src={sprintsImg} 
             alt="Sprint Analysis"
             style={{
               width: '100%',
@@ -172,7 +176,7 @@ function Login() {
         borderRadius: '12px',
         boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
       }}>
-        <img src="/clann-logo.png" alt="Clann" style={{ 
+        <img src={clannLogo} alt="Clann" style={{ 
           width: '150px', 
           marginBottom: '20px',
           display: 'block',

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SessionList from './components/SessionList';
 import AnalysisModal from './components/AnalysisModal';
-import NavBar from '../../components/NavBar';
+import NavBar from '../../components/common/NavBar';
 import sessionService from '../../services/sessionService';
 
 const getUserFromStorage = () => JSON.parse(localStorage.getItem('user'));
@@ -38,14 +38,11 @@ function CompanyDashboard() {
     }, [navigate, user]);
 
     const handleSessionClick = (session) => {
-        setSelectedSession(session);
-        setIsModalOpen(true);
+        // Implementation needed
     };
 
     const handleModalClose = () => {
-        setIsModalOpen(false);
-        setSelectedSession(null);
-        fetchSessions(); // Refresh list after modal closes
+        // Implementation needed
     };
 
     const handleStatusToggle = async (sessionId) => {
