@@ -9,6 +9,21 @@ function CompanyDashboard() {
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [filter, setFilter] = useState('ALL'); // 'ALL', 'PENDING', 'REVIEWED'
+    const [sortBy, setSortBy] = useState('date'); // 'date', 'team', 'status'
+
+    const filteredSessions = sessions
+        .filter(session => filter === 'ALL' ? true : session.status === filter)
+        .sort((a, b) => {
+            switch(sortBy) {
+                case 'team':
+                    return a.team_name.localeCompare(b.team_name);
+                case 'status':
+                    return a.status.localeCompare(b.status);
+                default:
+                    return new Date(b.created_at) - new Date(a.created_at);
+            }
+        });
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -41,9 +56,31 @@ function CompanyDashboard() {
             paddingBottom: '80px'
         }}>
             <div className="p-5 max-w-7xl mx-auto">
-                <h2 className="text-2xl mb-6">Company Dashboard</h2>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-2xl">Company Dashboard</h2>
+                    <div className="flex gap-4">
+                        <select 
+                            value={filter}
+                            onChange={(e) => setFilter(e.target.value)}
+                            className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
+                        >
+                            <option value="ALL">All Sessions</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="REVIEWED">Reviewed</option>
+                        </select>
+                        <select 
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
+                        >
+                            <option value="date">Sort by Date</option>
+                            <option value="team">Sort by Team</option>
+                            <option value="status">Sort by Status</option>
+                        </select>
+                    </div>
+                </div>
                 <div className="grid gap-4">
-                    {sessions.map(session => (
+                    {filteredSessions.map(session => (
                         <SessionCard 
                             key={session.id}
                             session={session}

@@ -77,6 +77,15 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to delete analysis');
         }
+    },
+
+    updateSessionStatus: async (sessionId, newStatus) => {
+        try {
+            const response = await api.patch(`/sessions/${sessionId}/toggle-status`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to update session status');
+        }
     }
 };
 

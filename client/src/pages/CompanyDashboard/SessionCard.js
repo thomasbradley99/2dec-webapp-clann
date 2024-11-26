@@ -56,38 +56,57 @@ function SessionCard({ session, onUpdate }) {
         }
     };
 
+    const handleStatusToggle = async () => {
+        try {
+            await sessionService.toggleSessionStatus(session.id);
+            onUpdate();
+        } catch (err) {
+            console.error('Failed to update status:', err);
+        }
+    };
+
     return (
-        <div className="bg-gray-900 rounded-lg overflow-hidden">
-            {/* Session Header - Quick Info */}
-            <div className="bg-gray-800 p-4 border-l-4 border-blue-500">
-                <div className="flex justify-between items-center">
-                    <h3 className="text-xl font-semibold text-white">
-                        {session.team_name}
-                    </h3>
-                    <span className={`px-4 py-2 rounded-full text-sm font-medium ${
-                        session.status === 'PENDING' 
-                            ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600' 
-                            : 'bg-green-600/20 text-green-400 border border-green-600'
-                    }`}>
-                        {session.status}
-                    </span>
-                </div>
-                
-                {/* Session Details - Collapsible */}
-                <div className="mt-2 text-sm text-gray-400">
-                    <p className="truncate">URL: {session.footage_url}</p>
-                    <div className="flex justify-between mt-1">
-                        <span>Created: {new Date(session.created_at).toLocaleDateString()}</span>
-                        <span>ID: {session.id.slice(0,8)}</span>
+        <div className={`bg-gray-900 rounded-lg overflow-hidden border-l-4 ${
+            session.status === 'PENDING' 
+                ? 'border-red-500' 
+                : 'border-green-500'
+        }`}>
+            <div className="bg-gray-800/50 p-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                            {session.team_name}
+                        </h3>
+                        <div className="space-y-1 text-sm text-gray-400">
+                            <p className="truncate">URL: {session.footage_url}</p>
+                            <p>Created: {new Date(session.created_at).toLocaleDateString()}</p>
+                            <p>Session ID: {session.id.slice(0,8)}</p>
+                        </div>
+                    </div>
+                    
+                    <div className="flex flex-col items-end gap-2">
+                        <button
+                            onClick={handleStatusToggle}
+                            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                                session.status === 'PENDING' 
+                                    ? 'bg-red-600/20 text-red-400 border border-red-600 hover:bg-red-600/30' 
+                                    : 'bg-green-600/20 text-green-400 border border-green-600 hover:bg-green-600/30'
+                            }`}
+                        >
+                            {session.status}
+                        </button>
                     </div>
                 </div>
             </div>
 
-            {/* Analysis Section */}
             <div className="p-4">
                 <button 
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className="w-full text-blue-400 hover:text-blue-300 flex items-center justify-between p-2 bg-gray-800/50 rounded"
+                    className={`w-full p-3 rounded flex items-center justify-between transition-colors ${
+                        isExpanded 
+                            ? 'bg-blue-500/20 text-blue-400 hover:bg-blue-500/30' 
+                            : 'bg-gray-800/50 text-gray-400 hover:bg-gray-800'
+                    }`}
                 >
                     <span>Analysis Dashboard</span>
                     <span>{isExpanded ? '↑' : '↓'}</span>
