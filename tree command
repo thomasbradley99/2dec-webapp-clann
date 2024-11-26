@@ -1,1 +1,6 @@
 tree -I 'node_modules|build|.git' -L 5
+
+
+cd docs/db
+npm run definition 
+npm run content 

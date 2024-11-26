@@ -68,6 +68,14 @@ const sessionService = {
             console.error('Add analysis error:', error);
             throw new Error(error.response?.data?.error || 'Failed to add analysis');
         }
+    },
+
+    deleteAnalysis: async (analysisId) => {
+        try {
+            await api.delete(`/sessions/analysis/${analysisId}`);
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to delete analysis');
+        }
     }
 };
 
