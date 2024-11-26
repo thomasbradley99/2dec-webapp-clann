@@ -37,18 +37,17 @@ CREATE TABLE Sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     team_id UUID REFERENCES Teams(id),
     uploaded_by UUID REFERENCES Users(id),
+    reviewed_by UUID REFERENCES Users(id),
     footage_url TEXT NOT NULL,
     game_date DATE NOT NULL,
     status VARCHAR(20) CHECK (status IN ('PENDING', 'REVIEWED')),
+    -- Analysis fields
+    analysis_image1_url TEXT,
+    analysis_image2_url TEXT,
+    analysis_image3_url TEXT,
+    distance_covered NUMERIC(10,2),  -- In meters, with 2 decimal places
+    analysis_description TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE Analysis (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    session_id UUID REFERENCES Sessions(id),
-    analyst_id UUID REFERENCES Users(id),
-    description TEXT,
-    image_url TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);

@@ -1,0 +1,12 @@
+{
+  "name": "db-tools",
+  "private": true,
+  "scripts": {
+    "definition": "node scripts/printDbDefinition.js",
+    "content": "node scripts/printDbContent.js"
+  },
+  "dependencies": {
+    "pg": "^8.13.1",
+    "dotenv": "^16.4.5"
+  }
+}
