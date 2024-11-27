@@ -7,14 +7,17 @@ function SessionDetails() {
     const { sessionId } = useParams();
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchSession = async () => {
             try {
                 const data = await sessionService.getSessionDetails(sessionId);
+                console.log("Fetched session data:", data);
                 setSession(data);
             } catch (error) {
                 console.error('Error fetching session:', error);
+                setError(error.message);
             } finally {
                 setLoading(false);
             }
@@ -23,113 +26,91 @@ function SessionDetails() {
     }, [sessionId]);
 
     if (loading) return <div className="p-8 text-white">Loading...</div>;
+    if (error) return <div className="p-8 text-white">Error: {error}</div>;
     if (!session) return <div className="p-8 text-white">Session not found</div>;
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            <div className="max-w-4xl mx-auto p-8">
-                <div className="bg-gray-800 rounded-lg p-6 mb-6">
-                    <h1 className="text-2xl font-bold mb-4">{session.team_name}</h1>
-                    <div className="space-y-3 text-gray-300">
-                        <p>Status: <span className={`font-medium ${
-                            session.status === 'PENDING' ? 'text-red-400' : 'text-green-400'
-                        }`}>{session.status}</span></p>
-                        <p>Team Code: <span className="font-medium">{session.team_code}</span></p>
-                        <p>Game Date: <span className="font-medium">
-                            {new Date(session.game_date).toLocaleDateString()}
-                        </span></p>
-                        <p>Footage URL: <span className="font-medium">{session.footage_url}</span></p>
-                        <p>Created: <span className="font-medium">
-                            {new Date(session.created_at).toLocaleDateString()}
-                        </span></p>
-                        <p>Last Updated: <span className="font-medium">
-                            {new Date(session.updated_at).toLocaleDateString()}
-                        </span></p>
-                        <p>Uploaded By: <span className="font-medium">{session.uploaded_by_email}</span></p>
-                        {session.reviewed_by && (
-                            <p>Reviewed By: <span className="font-medium">{session.reviewed_by}</span></p>
-                        )}
-                        {session.distance_covered && (
-                            <p>Distance Covered: <span className="font-medium">{session.distance_covered}m</span></p>
-                        )}
-                        {session.team_metrics && (
-                            <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
-                                <h3 className="text-lg font-medium text-blue-400 mb-3">Team Metrics</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <p className="text-sm text-gray-400">Total Distance</p>
-                                        <p className="font-medium">{session.team_metrics.total_distance}m</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-400">Total Sprints</p>
-                                        <p className="font-medium">{session.team_metrics.total_sprints}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-400">Sprint Distance</p>
-                                        <p className="font-medium">{session.team_metrics.sprint_distance}m</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-400">High Intensity Sprints</p>
-                                        <p className="font-medium">{session.team_metrics.high_intensity_sprints}</p>
-                                    </div>
-                                    <div>
-                                        <p className="text-sm text-gray-400">Top Sprint Speed</p>
-                                        <p className="font-medium">{session.team_metrics.top_sprint_speed} km/h</p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+        <div className="min-h-screen bg-gray-900 text-white pb-20">
+            <div className="max-w-7xl mx-auto p-8">
+                {/* Header Section */}
+                <div className="bg-gray-800/50 rounded-xl p-6 mb-8">
+                    <h1 className="text-4xl font-bold mb-4">{session.team_name}</h1>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <span className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 
+                            ${session.status === 'PENDING' 
+                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' 
+                                : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
+                            ⚡️ {session.status}
+                        </span>
+                        <span className="text-gray-400 flex items-center gap-2">
+                            📅 {new Date(session.game_date).toLocaleDateString()}
+                        </span>
+                        <span className="text-gray-400 flex items-center gap-2">
+                            👤 {session.uploaded_by_email}
+                        </span>
                     </div>
                 </div>
 
-                {(session.analysis_image1_url || session.analysis_image2_url || session.analysis_image3_url) && (
-                    <div className="space-y-6">
-                        {session.analysis_image1_url && (
-                            <div className="bg-gray-800 rounded-lg p-6">
-                                <h2 className="text-xl font-bold mb-4">Heatmap</h2>
-                                <div className="max-w-2xl mx-auto">
-                                    <img 
-                                        src={session.analysis_image1_url} 
-                                        alt="Heatmap Analysis"
-                                        className="w-full rounded-lg object-contain"
-                                        style={{ maxHeight: '500px' }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        {session.analysis_image2_url && (
-                            <div className="bg-gray-800 rounded-lg p-6">
-                                <h2 className="text-xl font-bold mb-4">Sprint Map</h2>
-                                <div className="max-w-2xl mx-auto">
-                                    <img 
-                                        src={session.analysis_image2_url} 
-                                        alt="Sprint Map Analysis"
-                                        className="w-full rounded-lg object-contain"
-                                        style={{ maxHeight: '500px' }}
-                                    />
-                                </div>
-                            </div>
-                        )}
-                        {session.analysis_image3_url && (
-                            <div className="bg-gray-800 rounded-lg p-6">
-                                <h2 className="text-xl font-bold mb-4">Game Momentum</h2>
-                                <div className="max-w-2xl mx-auto">
-                                    <img 
-                                        src={session.analysis_image3_url} 
-                                        alt="Game Momentum Analysis"
-                                        className="w-full rounded-lg object-contain"
-                                        style={{ maxHeight: '500px' }}
-                                    />
-                                </div>
-                            </div>
-                        )}
+                {/* Performance Metrics Section */}
+                {session.team_metrics && (
+                    <div className="mb-8">
+                        <h2 className="text-2xl font-bold mb-6">PERFORMANCE METRICS</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                            {Object.entries(session.team_metrics)
+                                .filter(([key]) => key !== 'high_intensity_sprints')
+                                .map(([key, value]) => (
+                                    <div key={key} 
+                                        className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 
+                                                 hover:border-green-500/30 transition-colors">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <span className="text-2xl">
+                                                {key.includes('sprint') ? '⚡️' : 
+                                                 key.includes('distance') ? '📏' : 
+                                                 key.includes('speed') ? '🚀' : '📊'}
+                                            </span>
+                                            <h3 className="text-sm font-medium text-gray-400">
+                                                {key.split('_').map(word => 
+                                                    word.charAt(0).toUpperCase() + word.slice(1)
+                                                ).join(' ')}
+                                            </h3>
+                                        </div>
+                                        <p className="text-3xl font-bold">
+                                            {value}
+                                            {key.includes('speed') ? ' km/h' : 
+                                             key.includes('distance') ? 'm' : ''}
+                                        </p>
+                                    </div>
+                                ))}
+                        </div>
                     </div>
                 )}
 
-                {session.analysis_description && (
-                    <div className="bg-gray-800 rounded-lg p-6 mt-6">
-                        <h2 className="text-xl font-bold mb-4">Analysis Notes</h2>
-                        <p className="text-gray-300">{session.analysis_description}</p>
+                {/* AI Analysis Section */}
+                {(session.analysis_image1_url || session.analysis_image2_url || session.analysis_image3_url) && (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">AI ANALYSIS</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {[
+                                { type: 'HEATMAP', icon: '🔥', url: session.analysis_image1_url },
+                                { type: 'SPRINT MAP', icon: '⚡', url: session.analysis_image2_url },
+                                { type: 'GAME MOMENTUM', icon: '📈', url: session.analysis_image3_url }
+                            ].map(analysis => analysis.url && (
+                                <div key={analysis.type} 
+                                    className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
+                                             hover:border-green-500/30 transition-colors">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="text-2xl">{analysis.icon}</span>
+                                        <h3 className="text-xl font-bold">{analysis.type}</h3>
+                                    </div>
+                                    <img 
+                                        src={analysis.url} 
+                                        alt={`${analysis.type} Analysis`}
+                                        className="w-full rounded-lg object-contain bg-black/30"
+                                        style={{ maxHeight: '300px' }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 )}
             </div>
