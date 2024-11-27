@@ -36,5 +36,6 @@ router.put('/:sessionId/toggle-status', auth, sessionsController.toggleSessionSt
 router.delete('/analysis/:sessionId/:type', auth, sessionsController.deleteAnalysis);
 router.post('/:sessionId/description', auth, sessionsController.addDescription);
 router.put('/:sessionId/description', auth, sessionsController.updateAnalysisDescription);
+router.get("/:sessionId", auth, sessionsController.getSessionDetails);
 
 module.exports = router; 

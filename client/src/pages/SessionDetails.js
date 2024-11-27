@@ -13,6 +13,8 @@ function SessionDetails() {
             try {
                 const data = await sessionService.getSessionDetails(sessionId);
                 setSession(data);
+            } catch (error) {
+                console.error('Error fetching session:', error);
             } finally {
                 setLoading(false);
             }

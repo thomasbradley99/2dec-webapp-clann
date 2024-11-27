@@ -99,10 +99,18 @@ const sessionService = {
 
     getSessionDetails: async (sessionId) => {
         try {
+            console.log('Fetching session details for:', sessionId);
             const response = await api.get(`/sessions/${sessionId}`);
+            console.log('Session details response:', response.data);
             return response.data;
         } catch (error) {
-            throw new Error('Failed to fetch session details');
+            console.error('Session details error:', {
+                status: error.response?.status,
+                data: error.response?.data,
+                message: error.message,
+                fullError: error
+            });
+            throw new Error(error.response?.data?.error || 'Failed to fetch session details');
         }
     }
 };

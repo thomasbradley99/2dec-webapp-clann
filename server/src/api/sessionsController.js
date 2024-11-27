@@ -463,4 +463,31 @@ exports.getUserSessions = async (req, res) => {
         console.error('Error fetching user sessions:', error);
         res.status(500).json({ error: 'Failed to fetch sessions' });
     }
+};
+
+exports.getSessionDetails = async (req, res) => {
+    try {
+        const { sessionId } = req.params;
+        
+        const result = await db.query(`
+            SELECT 
+                s.*,
+                t.name as team_name,
+                t.team_code,
+                u.email as uploaded_by_email
+            FROM Sessions s
+            LEFT JOIN Teams t ON s.team_id = t.id
+            LEFT JOIN Users u ON s.uploaded_by = u.id
+            WHERE s.id = $1
+        `, [sessionId]);
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Session not found' });
+        }
+
+        res.json(result.rows[0]);
+    } catch (err) {
+        console.error('Failed to fetch session details:', err);
+        res.status(500).json({ error: 'Failed to fetch session details' });
+    }
 }; 
