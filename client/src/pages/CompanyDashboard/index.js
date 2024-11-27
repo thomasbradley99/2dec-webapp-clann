@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import SessionCard from './SessionCard';
 import NavBar from '../../components/ui/NavBar';
 import sessionService from '../../services/sessionService';
+import Header from '../../components/ui/Header';
 
 function CompanyDashboard() {
     const navigate = useNavigate();
@@ -49,13 +50,9 @@ function CompanyDashboard() {
     if (error) return <div className="p-5 text-red-500">{error}</div>;
 
     return (
-        <div style={{ 
-            backgroundColor: '#1a1a1a', 
-            minHeight: '100vh',
-            color: '#ffffff',
-            paddingBottom: '80px'
-        }}>
-            <div className="p-5 max-w-7xl mx-auto">
+        <div className="min-h-screen bg-gray-900 text-white pb-20">
+            <Header />
+            <div className="max-w-7xl mx-auto p-4 md:p-8">
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl">Company Dashboard</h2>
                     <div className="flex gap-4">
