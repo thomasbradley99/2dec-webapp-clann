@@ -3,6 +3,7 @@ import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Sessions from './pages/Sessions';
 import CompanyDashboard from './pages/CompanyDashboard/index';
+import SessionDetails from './pages/SessionDetails';
 
 const router = createBrowserRouter([
     {
@@ -20,6 +21,10 @@ const router = createBrowserRouter([
     {
         path: '/profile',
         element: <Profile />,
+    },
+    {
+        path: '/session/:sessionId',
+        element: <SessionDetails />,
     }
 ], {
     future: {

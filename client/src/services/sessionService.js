@@ -86,6 +86,24 @@ const sessionService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to update session status');
         }
+    },
+
+    getUserSessions: async () => {
+        try {
+            const response = await api.get('/sessions/user');
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to fetch sessions');
+        }
+    },
+
+    getSessionDetails: async (sessionId) => {
+        try {
+            const response = await api.get(`/sessions/${sessionId}`);
+            return response.data;
+        } catch (error) {
+            throw new Error('Failed to fetch session details');
+        }
     }
 };
 

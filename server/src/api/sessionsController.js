@@ -443,4 +443,24 @@ exports.updateAnalysisDescription = async (req, res) => {
         console.error('Error updating description:', error);
         res.status(500).json({ error: 'Failed to update description' });
     }
+};
+
+exports.getUserSessions = async (req, res) => {
+    try {
+        const result = await db.query(
+            `SELECT s.*, 
+                    s.analysis_image1_url,
+                    s.analysis_image2_url,
+                    s.analysis_image3_url,
+                    s.analysis_description
+             FROM Sessions s
+             WHERE s.user_id = $1
+             ORDER BY s.created_at DESC`,
+            [req.user.id]
+        );
+        res.json(result.rows);
+    } catch (error) {
+        console.error('Error fetching user sessions:', error);
+        res.status(500).json({ error: 'Failed to fetch sessions' });
+    }
 }; 

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import sessionService from '../services/sessionService';
 import teamService from '../services/teamService';
 import NavBar from '../components/ui/NavBar';
+import { Link } from 'react-router-dom';
+import SessionCard from '../components/SessionCard';
 
 function Sessions() {
   const [url, setUrl] = useState('');
@@ -276,35 +278,22 @@ function Sessions() {
           </div>
         </div>
 
-        <div style={{ marginTop: '30px' }}>
-          <h3>Your Sessions</h3>
-          {isLoading ? (
-            <p>Loading sessions...</p>
-          ) : sessions.length === 0 ? (
-            <p>No sessions uploaded yet.</p>
-          ) : (
-            <div>
-              {sessions.map(session => (
-                <div key={session.id} className="session-card">
-                  <p>Team: {session.team_name}</p>
-                  <p>URL: {session.footage_url}</p>
-                  <p>Status: {session.status}</p>
-                  {session.analysis_description && (
-                    <div className="analysis-section">
-                      <h4>Analysis</h4>
-                      <p>{session.analysis_description}</p>
-                    </div>
-                  )}
-                  <button 
-                    onClick={() => handleDelete(session.id)}
-                    className="delete-button"
-                  >
-                    Delete
-                  </button>
+        <div className="mt-8">
+            <h2 className="text-xl font-bold mb-6">Your Sessions</h2>
+            {isLoading ? (
+                <p className="text-gray-400">Loading sessions...</p>
+            ) : sessions.length === 0 ? (
+                <p className="text-gray-400">No sessions uploaded yet.</p>
+            ) : (
+                <div className="space-y-4">
+                    {sessions.map(session => (
+                        <SessionCard 
+                            key={session.id} 
+                            session={session}
+                        />
+                    ))}
                 </div>
-              ))}
-            </div>
-          )}
+            )}
         </div>
       </div>
       <NavBar />
