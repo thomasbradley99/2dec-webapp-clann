@@ -34,8 +34,24 @@ function SessionDetails() {
                         <p>Status: <span className={`font-medium ${
                             session.status === 'PENDING' ? 'text-red-400' : 'text-green-400'
                         }`}>{session.status}</span></p>
-                        <p>URL: {session.footage_url}</p>
-                        <p>Created: {new Date(session.created_at).toLocaleDateString()}</p>
+                        <p>Team Code: <span className="font-medium">{session.team_code}</span></p>
+                        <p>Game Date: <span className="font-medium">
+                            {new Date(session.game_date).toLocaleDateString()}
+                        </span></p>
+                        <p>Footage URL: <span className="font-medium">{session.footage_url}</span></p>
+                        <p>Created: <span className="font-medium">
+                            {new Date(session.created_at).toLocaleDateString()}
+                        </span></p>
+                        <p>Last Updated: <span className="font-medium">
+                            {new Date(session.updated_at).toLocaleDateString()}
+                        </span></p>
+                        <p>Uploaded By: <span className="font-medium">{session.uploaded_by_email}</span></p>
+                        {session.reviewed_by && (
+                            <p>Reviewed By: <span className="font-medium">{session.reviewed_by}</span></p>
+                        )}
+                        {session.distance_covered && (
+                            <p>Distance Covered: <span className="font-medium">{session.distance_covered}m</span></p>
+                        )}
                     </div>
                 </div>
 
@@ -44,31 +60,40 @@ function SessionDetails() {
                         {session.analysis_image1_url && (
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h2 className="text-xl font-bold mb-4">Heatmap</h2>
-                                <img 
-                                    src={session.analysis_image1_url} 
-                                    alt="Heatmap Analysis"
-                                    className="w-full rounded-lg"
-                                />
+                                <div className="max-w-2xl mx-auto">
+                                    <img 
+                                        src={session.analysis_image1_url} 
+                                        alt="Heatmap Analysis"
+                                        className="w-full rounded-lg object-contain"
+                                        style={{ maxHeight: '500px' }}
+                                    />
+                                </div>
                             </div>
                         )}
                         {session.analysis_image2_url && (
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h2 className="text-xl font-bold mb-4">Sprint Map</h2>
-                                <img 
-                                    src={session.analysis_image2_url} 
-                                    alt="Sprint Map Analysis"
-                                    className="w-full rounded-lg"
-                                />
+                                <div className="max-w-2xl mx-auto">
+                                    <img 
+                                        src={session.analysis_image2_url} 
+                                        alt="Sprint Map Analysis"
+                                        className="w-full rounded-lg object-contain"
+                                        style={{ maxHeight: '500px' }}
+                                    />
+                                </div>
                             </div>
                         )}
                         {session.analysis_image3_url && (
                             <div className="bg-gray-800 rounded-lg p-6">
                                 <h2 className="text-xl font-bold mb-4">Game Momentum</h2>
-                                <img 
-                                    src={session.analysis_image3_url} 
-                                    alt="Game Momentum Analysis"
-                                    className="w-full rounded-lg"
-                                />
+                                <div className="max-w-2xl mx-auto">
+                                    <img 
+                                        src={session.analysis_image3_url} 
+                                        alt="Game Momentum Analysis"
+                                        className="w-full rounded-lg object-contain"
+                                        style={{ maxHeight: '500px' }}
+                                    />
+                                </div>
                             </div>
                         )}
                     </div>
