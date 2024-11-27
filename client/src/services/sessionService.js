@@ -1,5 +1,7 @@
 import api from './api';
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
 const sessionService = {
     getSessions: async () => {
         try {
@@ -112,7 +114,16 @@ const sessionService = {
             });
             throw new Error(error.response?.data?.error || 'Failed to fetch session details');
         }
-    }
+    },
+
+    updateTeamMetrics: async (sessionId, metrics) => {
+        try {
+            const response = await api.put(`/sessions/${sessionId}/metrics`, metrics);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to update metrics');
+        }
+    },
 };
 
 export default sessionService; 

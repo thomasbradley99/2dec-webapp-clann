@@ -1,4 +1,4 @@
-tree -I 'node_modules|build|.git' -L 5
+tree -I 'node_modules|build|.git' -L 7
 
 
 cd docs/db

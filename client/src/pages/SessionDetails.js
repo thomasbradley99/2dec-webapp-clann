@@ -52,6 +52,33 @@ function SessionDetails() {
                         {session.distance_covered && (
                             <p>Distance Covered: <span className="font-medium">{session.distance_covered}m</span></p>
                         )}
+                        {session.team_metrics && (
+                            <div className="mt-6 p-4 bg-gray-800/50 rounded-lg">
+                                <h3 className="text-lg font-medium text-blue-400 mb-3">Team Metrics</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p className="text-sm text-gray-400">Total Distance</p>
+                                        <p className="font-medium">{session.team_metrics.total_distance}m</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Total Sprints</p>
+                                        <p className="font-medium">{session.team_metrics.total_sprints}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Sprint Distance</p>
+                                        <p className="font-medium">{session.team_metrics.sprint_distance}m</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">High Intensity Sprints</p>
+                                        <p className="font-medium">{session.team_metrics.high_intensity_sprints}</p>
+                                    </div>
+                                    <div>
+                                        <p className="text-sm text-gray-400">Top Sprint Speed</p>
+                                        <p className="font-medium">{session.team_metrics.top_sprint_speed} km/h</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

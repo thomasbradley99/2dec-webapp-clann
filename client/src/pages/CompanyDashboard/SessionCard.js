@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import sessionService from '../../services/sessionService';
+import TeamMetricsForm from '../../components/TeamMetricsForm';
 
 function SessionCard({ session, onUpdate }) {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -167,6 +168,7 @@ function SessionCard({ session, onUpdate }) {
                                 </div>
                             );
                         })}
+                        <TeamMetricsForm session={session} onUpdate={onUpdate} />
                     </div>
                 )}
             </div>

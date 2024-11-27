@@ -490,4 +490,30 @@ exports.getSessionDetails = async (req, res) => {
         console.error('Failed to fetch session details:', err);
         res.status(500).json({ error: 'Failed to fetch session details' });
     }
+};
+
+exports.updateTeamMetrics = async (req, res) => {
+    try {
+        if (req.user.role !== 'COMPANY_MEMBER') {
+            return res.status(403).json({ error: 'Not authorized' });
+        }
+
+        const { sessionId } = req.params;
+        const metrics = req.body;
+
+        const result = await db.query(
+            `UPDATE Sessions 
+             SET team_metrics = $1,
+                 updated_at = CURRENT_TIMESTAMP,
+                 status = 'REVIEWED'
+             WHERE id = $2
+             RETURNING *`,
+            [metrics, sessionId]
+        );
+
+        res.json(result.rows[0]);
+    } catch (error) {
+        console.error('Error updating team metrics:', error);
+        res.status(500).json({ error: 'Failed to update team metrics' });
+    }
 }; 

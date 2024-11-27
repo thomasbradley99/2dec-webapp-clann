@@ -37,5 +37,6 @@ router.delete('/analysis/:sessionId/:type', auth, sessionsController.deleteAnaly
 router.post('/:sessionId/description', auth, sessionsController.addDescription);
 router.put('/:sessionId/description', auth, sessionsController.updateAnalysisDescription);
 router.get("/:sessionId", auth, sessionsController.getSessionDetails);
+router.put('/:sessionId/metrics', auth, sessionsController.updateTeamMetrics);
 
 module.exports = router; 
