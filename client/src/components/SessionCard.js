@@ -7,21 +7,36 @@ function SessionCard({ session }) {
     return (
         <div 
             onClick={() => navigate(`/session/${session.id}`)}
-            className="cursor-pointer border border-gray-700 rounded-lg p-6 bg-gray-800 
-                       hover:bg-gray-700 transition-colors"
+            className={`bg-gray-900 rounded-lg overflow-hidden border-l-4 cursor-pointer
+                       hover:bg-gray-800/70 transition-all duration-200 ${
+                session.status === 'PENDING' 
+                    ? 'border-yellow-500' 
+                    : 'border-green-500'
+            }`}
         >
-            <div className="flex justify-between items-start">
-                <div>
-                    <h3 className="text-xl font-semibold text-white">
-                        {session.team_name}
-                    </h3>
-                    <p className="text-gray-400 mt-2">
-                        Status: <span className={
-                            session.status === 'PENDING' ? 'text-yellow-400' : 'text-green-400'
-                        }>{session.status}</span>
-                    </p>
+            <div className="bg-gray-800/50 p-6">
+                <div className="flex justify-between items-start">
+                    <div>
+                        <h3 className="text-xl font-semibold text-white mb-2">
+                            {session.team_name}
+                        </h3>
+                        <div className="space-y-1 text-sm text-gray-400">
+                            <p className="truncate">URL: {session.footage_url}</p>
+                            <p>Created: {new Date(session.created_at).toLocaleDateString()}</p>
+                            <p>Session ID: {session.id.slice(0,8)}</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <span className={`px-4 py-2 rounded-full text-sm font-medium ${
+                            session.status === 'PENDING' 
+                                ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-600' 
+                                : 'bg-green-600/20 text-green-400 border border-green-600'
+                        }`}>
+                            {session.status}
+                        </span>
+                        <span className="text-blue-400">→</span>
+                    </div>
                 </div>
-                <span className="text-blue-400">→</span>
             </div>
         </div>
     );
