@@ -12,7 +12,7 @@ function Profile() {
     const [error, setError] = useState(null);
     const [user, setUser] = useState(null);
     const [selectedTeam, setSelectedTeam] = useState(null);
-    const [teamMembers, setTeamMembers] = useState([]);
+    const [teamMembers, setTeamMembers] = useState({});
     const [membersLoading, setMembersLoading] = useState(false);
     const [feedback, setFeedback] = useState(null);
     const [removingMember, setRemovingMember] = useState(null);
@@ -59,7 +59,10 @@ function Profile() {
         setMembersLoading(true);
         try {
             const members = await teamService.getTeamMembers(teamId);
-            setTeamMembers(members);
+            setTeamMembers(prev => ({
+                ...prev,
+                [teamId]: members
+            }));
         } catch (err) {
             setError(err.message);
         } finally {
@@ -163,7 +166,7 @@ function Profile() {
                                                     {membersLoading ? (
                                                         <p className="text-sm text-gray-400">Loading members...</p>
                                                     ) : (
-                                                        teamMembers.map((member, index) => (
+                                                        teamMembers[team.id]?.map((member, index) => (
                                                             <div 
                                                                 key={index}
                                                                 className="flex items-center justify-between py-2"
