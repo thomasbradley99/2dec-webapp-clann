@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import sessionService from '../services/sessionService';
 import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
 
 function SessionDetails() {
+    const navigate = useNavigate();
     const { sessionId } = useParams();
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -25,6 +26,17 @@ function SessionDetails() {
         };
         fetchSession();
     }, [sessionId]);
+
+    const handleDelete = async () => {
+        if (window.confirm('Are you sure you want to delete this session? This action cannot be undone.')) {
+            try {
+                await sessionService.deleteSession(sessionId);
+                navigate('/sessions');
+            } catch (err) {
+                console.error('Error deleting session:', err);
+            }
+        }
+    };
 
     if (loading) return <div className="p-8 text-white">Loading...</div>;
     if (error) return <div className="p-8 text-white">Error: {error}</div>;
@@ -115,6 +127,20 @@ function SessionDetails() {
                         </div>
                     </div>
                 )}
+
+                {/* Add this at the bottom */}
+                <div className="mt-12 pt-6 border-t border-gray-700">
+                    <div className="flex justify-end">
+                        <button
+                            onClick={handleDelete}
+                            className="px-4 py-2 bg-red-500/20 text-red-400 
+                                     border border-red-500 rounded hover:bg-red-500/30 
+                                     transition-colors"
+                        >
+                            Delete Session
+                        </button>
+                    </div>
+                </div>
             </div>
             <NavBar />
         </div>
