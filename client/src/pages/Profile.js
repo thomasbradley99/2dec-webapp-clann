@@ -36,6 +36,14 @@ function Profile() {
         }
     }, [feedback]);
 
+    useEffect(() => {
+        if (teams.length > 0) {
+            teams.forEach(team => {
+                fetchTeamMembers(team.id);
+            });
+        }
+    }, [teams]);
+
     const fetchTeams = async () => {
         try {
             const userTeams = await teamService.getUserTeams();
@@ -80,124 +88,91 @@ function Profile() {
         <div className="min-h-screen bg-gray-900 text-white pb-20">
             <Header />
             <div className="max-w-7xl mx-auto p-4 md:p-8">
-                <div style={{ 
-                    backgroundColor: '#1a1a1a', 
-                    minHeight: '100vh',
-                    color: '#ffffff',
-                    paddingBottom: '80px'
-                }}>
-                    <div style={{ padding: '20px' }}>
-                        <h2>Profile</h2>
-                        
-                        {/* Profile Info */}
-                        <div style={{ 
-                            backgroundColor: '#333333', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            marginTop: '20px'
-                        }}>
-                            <p style={{ color: '#888888' }}>Email</p>
-                            <p style={{ marginTop: '5px' }}>{user?.email || 'Loading...'}</p>
+                {/* Profile Section */}
+                <div className="space-y-8">
+                    {/* Email Card */}
+                    <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
+                        <h2 className="text-xl font-semibold mb-4">Profile</h2>
+                        <div className="space-y-2">
+                            <label className="text-sm text-gray-400">Email</label>
+                            <p className="text-lg">{user?.email || 'Loading...'}</p>
                         </div>
+                    </div>
 
-                        {/* Teams Section */}
-                        <div style={{ 
-                            backgroundColor: '#333333', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            marginTop: '20px'
-                        }}>
-                            <h3>Your Teams</h3>
-                            {loading ? (
-                                <p>Loading teams...</p>
-                            ) : error ? (
-                                <p style={{ color: '#FF4444' }}>{error}</p>
-                            ) : teams.length === 0 ? (
-                                <p>No teams yet. Upload a session to create a team!</p>
-                            ) : (
-                                <div style={{ marginTop: '15px' }}>
-                                    {teams.map(team => (
-                                        <div 
-                                            key={team.id}
-                                            style={{
-                                                padding: '15px',
-                                                backgroundColor: '#1a1a1a',
-                                                borderRadius: '4px',
-                                                marginBottom: '10px',
-                                                border: '1px solid #333'
-                                            }}
-                                        >
-                                            <p style={{ fontWeight: 'bold' }}>{team.name}</p>
-                                            <p style={{ 
-                                                color: '#888888', 
-                                                fontSize: '14px',
-                                                marginTop: '5px'
-                                            }}>
-                                                Team Code: {team.team_code}
-                                            </p>
-                                            <p style={{ 
-                                                color: '#888888', 
-                                                fontSize: '14px',
-                                                marginTop: '5px'
-                                            }}>
-                                                Role: {team.is_admin ? 'Admin' : 'Member'}
-                                            </p>
+                    {/* Teams Section */}
+                    <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
+                        <h3 className="text-xl font-semibold mb-4">Your Teams</h3>
+                        
+                        {loading ? (
+                            <p className="text-gray-400">Loading teams...</p>
+                        ) : error ? (
+                            <p className="text-red-400">{error}</p>
+                        ) : teams.length === 0 ? (
+                            <p className="text-gray-400">No teams yet. Upload a session to create a team!</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {teams.map(team => (
+                                    <div 
+                                        key={team.id}
+                                        className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 hover:border-gray-600"
+                                    >
+                                        {/* Team Header */}
+                                        <div className="p-6 relative">
+                                            {team.is_admin && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
+                                                            try {
+                                                                await teamService.deleteTeam(team.id);
+                                                                setFeedback({
+                                                                    type: 'success',
+                                                                    message: 'Team deleted successfully'
+                                                                });
+                                                                fetchTeams();
+                                                            } catch (err) {
+                                                                setFeedback({
+                                                                    type: 'error',
+                                                                    message: err.message || 'Failed to delete team'
+                                                                });
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="absolute top-4 right-4 px-3 py-1.5 text-sm font-medium text-red-400 bg-red-400/10 
+                                                             border border-red-400 rounded hover:bg-red-400/20 transition-colors"
+                                                >
+                                                    Delete Team
+                                                </button>
+                                            )}
                                             
-                                            {/* View Members Button */}
-                                            <button
-                                                onClick={() => {
-                                                    if (selectedTeam === team.id) {
-                                                        setSelectedTeam(null);
-                                                        setTeamMembers([]);
-                                                    } else {
-                                                        setSelectedTeam(team.id);
-                                                        fetchTeamMembers(team.id);
-                                                    }
-                                                }}
-                                                style={{
-                                                    background: 'none',
-                                                    border: '1px solid #016F33',
-                                                    color: '#016F33',
-                                                    padding: '5px 10px',
-                                                    borderRadius: '4px',
-                                                    marginTop: '10px',
-                                                    cursor: 'pointer'
-                                                }}
-                                            >
-                                                {selectedTeam === team.id ? 'Hide Members' : 'View Members'}
-                                            </button>
+                                            <h4 className="text-lg font-medium">{team.name}</h4>
+                                            <div className="mt-2 space-y-1">
+                                                <p className="text-sm text-gray-400">
+                                                    Team Code: <span className="font-mono">{team.team_code}</span>
+                                                </p>
+                                                <p className="text-sm text-gray-400">
+                                                    Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
+                                                </p>
+                                            </div>
+                                        </div>
 
-                                            {/* Members List */}
-                                            {selectedTeam === team.id && (
-                                                <div style={{ marginTop: '10px' }}>
+                                        {/* Members List */}
+                                        <div className="border-t border-gray-700 bg-gray-800/50">
+                                            <div className="p-6">
+                                                <h5 className="text-sm font-medium text-gray-300 mb-4">Team Members</h5>
+                                                <div className="space-y-2">
                                                     {membersLoading ? (
-                                                        <p>Loading members...</p>
+                                                        <p className="text-sm text-gray-400">Loading members...</p>
                                                     ) : (
-                                                        <div style={{ 
-                                                            marginTop: '10px',
-                                                            padding: '10px',
-                                                            backgroundColor: '#2a2a2a',
-                                                            borderRadius: '4px'
-                                                        }}>
-                                                            <h4 style={{ marginBottom: '10px' }}>Team Members</h4>
-                                                            {teamMembers.map((member, index) => (
-                                                                <div 
-                                                                    key={index}
-                                                                    style={{
-                                                                        padding: '5px',
-                                                                        display: 'flex',
-                                                                        justifyContent: 'space-between',
-                                                                        alignItems: 'center',
-                                                                        borderBottom: index !== teamMembers.length - 1 ? '1px solid #333' : 'none'
-                                                                    }}
-                                                                >
-                                                                    <div>
-                                                                        <span>{member.email}</span>
-                                                                    </div>
-                                                                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                                                                        {/* Admin Toggle */}
-                                                                        {team.is_admin && member.id !== user.id && (
-                                                                            <label style={{ marginRight: '10px', display: 'flex', alignItems: 'center' }}>
+                                                        teamMembers.map((member, index) => (
+                                                            <div 
+                                                                key={index}
+                                                                className="flex items-center justify-between py-2"
+                                                            >
+                                                                <span className="text-sm">{member.email}</span>
+                                                                <div className="flex items-center gap-3">
+                                                                    {team.is_admin && member.id !== user.id && (
+                                                                        <>
+                                                                            <label className="flex items-center gap-2 text-sm">
                                                                                 <input
                                                                                     type="checkbox"
                                                                                     checked={member.is_admin}
@@ -210,13 +185,10 @@ function Profile() {
                                                                                             setFeedback({ type: 'error', message: err.message });
                                                                                         }
                                                                                     }}
-                                                                                    style={{ marginRight: '5px' }}
+                                                                                    className="rounded border-gray-600 bg-gray-700 text-green-500 focus:ring-green-500"
                                                                                 />
-                                                                                <span>Admin</span>
+                                                                                <span className="text-gray-300">Admin</span>
                                                                             </label>
-                                                                        )}
-                                                                        {/* Remove Button */}
-                                                                        {team.is_admin && member.id !== user.id && (
                                                                             <button
                                                                                 onClick={async () => {
                                                                                     if (window.confirm(`Are you sure you want to remove ${member.email} from the team?`)) {
@@ -238,103 +210,55 @@ function Profile() {
                                                                                         }
                                                                                     }
                                                                                 }}
-                                                                                style={{
-                                                                                    background: 'none',
-                                                                                    border: '1px solid #FF4444',
-                                                                                    color: '#FF4444',
-                                                                                    padding: '2px 8px',
-                                                                                    borderRadius: '4px',
-                                                                                    cursor: 'pointer',
-                                                                                    fontSize: '12px'
-                                                                                }}
+                                                                                className="text-xs px-2 py-1 text-red-400 bg-red-400/10 
+                                                                                           border border-red-400 rounded hover:bg-red-400/20 
+                                                                                           transition-colors"
                                                                             >
-                                                                                {removingMember === member.id ? 'Removing...' : 'Remove from Team'}
+                                                                                {removingMember === member.id ? 'Removing...' : 'Remove'}
                                                                             </button>
-                                                                        )}
-                                                                    </div>
+                                                                        </>
+                                                                    )}
                                                                 </div>
-                                                            ))}
-                                                        </div>
+                                                            </div>
+                                                        ))
                                                     )}
                                                 </div>
-                                            )}
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-
-                        {feedback && (
-                            <div style={{
-                                padding: '10px',
-                                marginTop: '10px',
-                                backgroundColor: feedback.type === 'success' ? '#016F33' : '#FF4444',
-                                borderRadius: '4px',
-                                position: 'fixed',
-                                bottom: '20px',
-                                right: '20px',
-                                zIndex: 1000
-                            }}>
-                                {feedback.message}
+                                    </div>
+                                ))}
                             </div>
                         )}
+                    </div>
 
-                        {/* Logout Button */}
+                    {/* Action Buttons */}
+                    <div className="space-y-3">
                         <button 
                             onClick={handleLogout}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                backgroundColor: '#1a1a1a',
-                                border: '1px solid #016F33',
-                                color: '#016F33',
-                                borderRadius: '4px',
-                                marginTop: '30px',
-                                cursor: 'pointer',
-                                fontSize: '16px',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.target.style.backgroundColor = '#016F33';
-                                e.target.style.color = '#ffffff';
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.backgroundColor = '#1a1a1a';
-                                e.target.style.color = '#016F33';
-                            }}
+                            className="w-full py-3 px-4 bg-gray-900 text-green-400 border border-green-400 
+                                     rounded-lg hover:bg-green-400/10 transition-colors"
                         >
                             Logout
                         </button>
-
-                        {/* Delete Account Button */}
                         <button 
                             onClick={handleDeleteAccount}
-                            style={{
-                                width: '100%',
-                                padding: '12px',
-                                backgroundColor: '#1a1a1a',
-                                border: '1px solid #FF4444',
-                                color: '#FF4444',
-                                borderRadius: '4px',
-                                marginTop: '10px',
-                                cursor: 'pointer',
-                                fontSize: '16px',
-                                transition: 'all 0.2s ease'
-                            }}
-                            onMouseOver={(e) => {
-                                e.target.style.backgroundColor = '#FF4444';
-                                e.target.style.color = '#ffffff';
-                            }}
-                            onMouseOut={(e) => {
-                                e.target.style.backgroundColor = '#1a1a1a';
-                                e.target.style.color = '#FF4444';
-                            }}
+                            className="w-full py-3 px-4 bg-gray-900 text-red-400 border border-red-400 
+                                     rounded-lg hover:bg-red-400/10 transition-colors"
                         >
                             Delete Account
                         </button>
                     </div>
                 </div>
             </div>
+
+            {/* Feedback Toast */}
+            {feedback && (
+                <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300
+                              ${feedback.type === 'success' ? 'bg-green-400/20 text-green-400 border border-green-400' : 
+                                                            'bg-red-400/20 text-red-400 border border-red-400'}`}>
+                    {feedback.message}
+                </div>
+            )}
             <NavBar />
         </div>
     );

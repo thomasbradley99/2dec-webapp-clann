@@ -58,6 +58,15 @@ const teamService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to update admin status');
         }
+    },
+
+    async deleteTeam(teamId) {
+        try {
+            const response = await api.delete(`/teams/${teamId}`);
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to delete team');
+        }
     }
 };
 

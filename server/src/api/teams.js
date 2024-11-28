@@ -10,5 +10,6 @@ router.get("/:teamId/members", auth, teamsController.getTeamMembers);
 router.delete("/:teamId/members/:userId", auth, teamsController.removeTeamMember);
 router.patch("/:teamId/members/:userId/promote", auth, teamsController.promoteToAdmin);
 router.patch("/:teamId/members/:userId/admin", auth, teamsController.toggleAdminStatus);
+router.delete("/:teamId", auth, teamsController.deleteTeam);
 
 module.exports = router;

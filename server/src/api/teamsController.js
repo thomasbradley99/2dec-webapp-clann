@@ -256,4 +256,54 @@ exports.toggleAdminStatus = async (req, res) => {
         console.error('Toggle admin status error:', err);
         res.status(500).json({ error: 'Failed to update admin status' });
     }
+};
+
+exports.deleteTeam = async (req, res) => {
+    const { teamId } = req.params;
+    const requestingUserId = req.user.id;
+
+    try {
+        // Check if requesting user is admin
+        const requestingUserCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, requestingUserId]
+        );
+
+        if (!requestingUserCheck.rows[0]?.is_admin) {
+            return res.status(403).json({ error: 'Only team admins can delete teams' });
+        }
+
+        await db.query('BEGIN');
+
+        // Delete all sessions associated with the team
+        await db.query(
+            `DELETE FROM Sessions 
+             WHERE team_id = $1`,
+            [teamId]
+        );
+
+        // Delete all team members
+        await db.query(
+            `DELETE FROM TeamMembers 
+             WHERE team_id = $1`,
+            [teamId]
+        );
+
+        // Finally delete the team
+        await db.query(
+            `DELETE FROM Teams 
+             WHERE id = $1`,
+            [teamId]
+        );
+
+        await db.query('COMMIT');
+
+        res.json({ message: 'Team deleted successfully' });
+    } catch (err) {
+        await db.query('ROLLBACK');
+        console.error('Delete team error:', err);
+        res.status(500).json({ error: 'Failed to delete team: ' + err.message });
+    }
 }; 
