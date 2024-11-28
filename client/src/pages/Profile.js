@@ -80,6 +80,7 @@ function Profile() {
             try {
                 await authService.deleteAccount();
                 localStorage.removeItem('user');
+                localStorage.removeItem('token');
                 navigate('/');
             } catch (err) {
                 alert(err);
@@ -121,7 +122,7 @@ function Profile() {
                                     >
                                         {/* Team Header */}
                                         <div className="p-6 relative">
-                                            {team.is_admin && (
+                                            {team.is_admin ? (
                                                 <button
                                                     onClick={async () => {
                                                         if (window.confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
@@ -144,6 +145,30 @@ function Profile() {
                                                              border border-red-400 rounded hover:bg-red-400/20 transition-colors"
                                                 >
                                                     Delete Team
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (window.confirm('Are you sure you want to leave this team?')) {
+                                                            try {
+                                                                await teamService.leaveTeam(team.id);
+                                                                setFeedback({
+                                                                    type: 'success',
+                                                                    message: 'Successfully left team'
+                                                                });
+                                                                fetchTeams();
+                                                            } catch (err) {
+                                                                setFeedback({
+                                                                    type: 'error',
+                                                                    message: err.message || 'Failed to leave team'
+                                                                });
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="absolute top-4 right-4 px-3 py-1.5 text-sm font-medium text-yellow-400 bg-yellow-400/10 
+                                                             border border-yellow-400 rounded hover:bg-yellow-400/20 transition-colors"
+                                                >
+                                                    Leave Team
                                                 </button>
                                             )}
                                             

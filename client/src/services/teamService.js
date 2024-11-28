@@ -67,6 +67,14 @@ const teamService = {
         } catch (error) {
             throw new Error(error.response?.data?.error || 'Failed to delete team');
         }
+    },
+
+    leaveTeam: async (teamId) => {
+        try {
+            await api.post(`/teams/${teamId}/leave`);
+        } catch (error) {
+            throw error.response?.data?.error || 'Failed to leave team';
+        }
     }
 };
 

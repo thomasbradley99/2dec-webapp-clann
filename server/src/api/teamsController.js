@@ -91,6 +91,14 @@ exports.joinTeam = async (req, res) => {
             return res.status(400).json({ error: 'Already a member of this team' });
         }
 
+        // Get team details first
+        const teamDetails = await db.query(
+            `SELECT name 
+             FROM Teams 
+             WHERE id = $1`,
+            [teamId]
+        );
+
         // Add user to team
         await db.query(
             `INSERT INTO TeamMembers (team_id, user_id, is_admin)
@@ -98,7 +106,10 @@ exports.joinTeam = async (req, res) => {
             [teamId, userId]
         );
 
-        res.json({ message: 'Successfully joined team' });
+        res.json({ 
+            message: 'Successfully joined team',
+            team_name: teamDetails.rows[0].name 
+        });
     } catch (err) {
         console.error('Join team error:', err);
         res.status(500).json({ error: 'Failed to join team' });
@@ -305,5 +316,45 @@ exports.deleteTeam = async (req, res) => {
         await db.query('ROLLBACK');
         console.error('Delete team error:', err);
         res.status(500).json({ error: 'Failed to delete team: ' + err.message });
+    }
+};
+
+exports.leaveTeam = async (req, res) => {
+    const { teamId } = req.params;
+    const userId = req.user.id;
+
+    try {
+        // Check if user is the last admin
+        const adminCheck = await db.query(
+            `SELECT COUNT(*) as admin_count 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND is_admin = true`,
+            [teamId]
+        );
+
+        const userCheck = await db.query(
+            `SELECT is_admin 
+             FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, userId]
+        );
+
+        if (adminCheck.rows[0].admin_count === 1 && userCheck.rows[0]?.is_admin) {
+            return res.status(400).json({ 
+                error: 'Cannot leave team as last admin. Delete team instead.' 
+            });
+        }
+
+        // Remove user from team
+        await db.query(
+            `DELETE FROM TeamMembers 
+             WHERE team_id = $1 AND user_id = $2`,
+            [teamId, userId]
+        );
+
+        res.json({ message: 'Successfully left team' });
+    } catch (err) {
+        console.error('Leave team error:', err);
+        res.status(500).json({ error: 'Failed to leave team' });
     }
 }; 

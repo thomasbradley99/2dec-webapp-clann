@@ -3,10 +3,10 @@ import axios from 'axios';
 const API_URL = 'http://localhost:3001/api';
 
 const getHeaders = () => {
-    const user = JSON.parse(localStorage.getItem('user'));
+    const token = localStorage.getItem('token');
     return {
         headers: {
-            'user-id': user?.id
+            'Authorization': `Bearer ${token}`
         }
     };
 };
