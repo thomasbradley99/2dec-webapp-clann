@@ -17,9 +17,17 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await userService.validateUser(email, password);
-      localStorage.setItem('user', JSON.stringify(response));
-      navigate(response.role === 'COMPANY_MEMBER' ? '/company' : '/sessions');
+      if (isLogin) {
+        // Login flow
+        const response = await userService.validateUser(email, password);
+        localStorage.setItem('user', JSON.stringify(response));
+        navigate(response.role === 'COMPANY_MEMBER' ? '/company' : '/sessions');
+      } else {
+        // Registration flow
+        const response = await userService.createUser(email, password);
+        localStorage.setItem('user', JSON.stringify(response));
+        navigate('/sessions'); // New users always go to sessions page
+      }
     } catch (err) {
       setError(err.message);
     }
