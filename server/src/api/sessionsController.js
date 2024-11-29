@@ -2,6 +2,7 @@ const db = require("../db");
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const { MAX_TEAM_MEMBERS } = require('../constants');
+const { uploadToS3 } = require('../utils/s3');
 
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
@@ -195,7 +196,8 @@ exports.addAnalysis = async (req, res) => {
             return res.status(400).json({ error: 'Missing sessionId or type' });
         }
 
-        const imageUrl = `http://localhost:3001/analysis-images/${req.file.filename}`;
+        // Upload to S3 instead of local storage
+        const imageUrl = await uploadToS3(req.file);
         console.log('Processing upload:', { sessionId, type, imageUrl });
         
         // Update the appropriate column based on analysis type
@@ -236,15 +238,10 @@ exports.addAnalysis = async (req, res) => {
         }
 
         const result = await db.query(updateQuery, [imageUrl, req.user.id, sessionId]);
-        
-        if (result.rows.length === 0) {
-            return res.status(404).json({ error: 'Session not found' });
-        }
-
         res.json(result.rows[0]);
     } catch (err) {
         console.error('Analysis upload error:', err);
-        res.status(500).json({ error: err.message || 'Failed to process analysis' });
+        res.status(500).json({ error: err.message });
     }
 };
 
