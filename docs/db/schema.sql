@@ -2,13 +2,12 @@
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Drop existing tables if they exist
-DROP TABLE IF EXISTS Analysis;
 DROP TABLE IF EXISTS Sessions;
 DROP TABLE IF EXISTS TeamMembers;
 DROP TABLE IF EXISTS Teams;
 DROP TABLE IF EXISTS Users;
 
--- Create tables
+-- Create Users table
 CREATE TABLE Users (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -18,6 +17,7 @@ CREATE TABLE Users (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create Teams table
 CREATE TABLE Teams (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
@@ -25,6 +25,7 @@ CREATE TABLE Teams (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Create TeamMembers table
 CREATE TABLE TeamMembers (
     team_id UUID REFERENCES Teams(id),
     user_id UUID REFERENCES Users(id),
@@ -33,6 +34,7 @@ CREATE TABLE TeamMembers (
     PRIMARY KEY (team_id, user_id)
 );
 
+-- Create Sessions table
 CREATE TABLE Sessions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     team_id UUID REFERENCES Teams(id),
@@ -41,13 +43,19 @@ CREATE TABLE Sessions (
     footage_url TEXT NOT NULL,
     game_date DATE NOT NULL,
     status VARCHAR(20) CHECK (status IN ('PENDING', 'REVIEWED')),
-    -- Analysis fields
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     analysis_image1_url TEXT,
     analysis_image2_url TEXT,
     analysis_image3_url TEXT,
-    distance_covered NUMERIC(10,2),  -- In meters, with 2 decimal places
+    distance_covered NUMERIC,
     analysis_description TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    team_metrics JSONB DEFAULT '{
+        "total_distance": 0,
+        "total_sprints": 0,
+        "sprint_distance": 0,
+        "high_intensity_sprints": 0,
+        "top_sprint_speed": 0
+    }'::jsonb
 );
 

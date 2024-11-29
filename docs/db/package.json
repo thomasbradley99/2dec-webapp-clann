@@ -5,7 +5,8 @@
     "definition": "node scripts/printDbDefinition.js",
     "content": "node scripts/printDbContent.js",
     "add-metrics": "node scripts/addTeamMetrics.js",
-    "details": "node scripts/printDetailedContent.js"
+    "details": "node scripts/printDetailedContent.js",
+    "get-schema": "node scripts/getCurrentSchema.js"
   },
   "dependencies": {
     "pg": "^8.13.1",
