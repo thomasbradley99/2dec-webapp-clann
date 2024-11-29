@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ReactPlayer from 'react-player';
 import userService from '../services/userService';
-import activityImg from '../assets/images/activity.jpeg';
-import heatmapImg from '../assets/images/heatmap.jpeg';
-import sprintsImg from '../assets/images/sprints.jpeg';
+import activityImg from '../static/team_0_activity.png';
+import heatmapImg from '../static/heatmap_team_0.png';
+import sprintsImg from '../static/sprint_diagram_team_0_distance.png';
 import clannLogo from '../assets/images/clann-logo.png';
 
 function Login() {
@@ -135,13 +135,13 @@ function Login() {
             }
           ].map(feature => (
             <div key={feature.title} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
-                                              hover:border-green-500/30 transition-all transform hover:-translate-y-1">
+                                      hover:border-green-500/30 transition-all transform hover:-translate-y-1">
               <img 
                 src={feature.image} 
                 alt={feature.title}
-                className="w-full aspect-video rounded-lg object-cover mb-6"
+                className="w-full h-auto object-contain rounded-lg bg-black/30"
               />
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-4 mt-4">
                 <span className="text-2xl">{feature.icon}</span>
                 <h3 className="text-xl font-bold text-white">{feature.title}</h3>
               </div>
