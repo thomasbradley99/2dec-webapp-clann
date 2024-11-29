@@ -72,6 +72,10 @@ function SessionDetails() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {Object.entries(session.team_metrics)
                                 .filter(([key]) => key !== 'high_intensity_sprints')
+                                .sort(([keyA], [keyB]) => {
+                                    const order = ['total_distance', 'sprint_distance', 'total_sprints', 'top_sprint_speed'];
+                                    return order.indexOf(keyA) - order.indexOf(keyB);
+                                })
                                 .map(([key, value]) => (
                                     <div key={key} 
                                         className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 
@@ -90,8 +94,9 @@ function SessionDetails() {
                                         </div>
                                         <p className="text-3xl font-bold">
                                             {value}
-                                            {key.includes('speed') ? ' km/h' : 
-                                             key.includes('distance') ? 'm' : ''}
+                                            {key.includes('sprint_distance') ? ' m' : 
+                                             key.includes('total_distance') ? ' km' : 
+                                             key.includes('speed') ? ' m/s' : ''}
                                         </p>
                                     </div>
                                 ))}
