@@ -4,7 +4,7 @@ import TeamMetricsForm from '../../components/TeamMetricsForm';
 
 function SessionCard({ session, onUpdate }) {
     const [isExpanded, setIsExpanded] = useState(false);
-    const [uploading, setUploading] = useState(false);
+    const [uploading, setUploading] = useState({});
     const [uploadProgress, setUploadProgress] = useState(0);
 
     const getAnalysisImage = (type) => {
@@ -30,7 +30,7 @@ function SessionCard({ session, onUpdate }) {
             const file = e.target.files[0];
             if (!file) return;
 
-            setUploading(true);
+            setUploading((prev) => ({ ...prev, [type]: true }));
             try {
                 const formData = new FormData();
                 formData.append('file', file);
@@ -42,7 +42,7 @@ function SessionCard({ session, onUpdate }) {
             } catch (err) {
                 console.error('Upload failed:', err);
             } finally {
-                setUploading(false);
+                setUploading((prev) => ({ ...prev, [type]: false }));
             }
         };
 
@@ -161,12 +161,12 @@ function SessionCard({ session, onUpdate }) {
                                         ) : (
                                             <button
                                                 onClick={() => handleFileUpload(type)}
-                                                disabled={uploading}
+                                                disabled={uploading[type]}
                                                 className="w-full p-4 border-2 border-dashed 
                                                          border-gray-600 rounded hover:border-gray-500
                                                          transition-colors"
                                             >
-                                                {uploading ? 'Uploading...' : `Upload ${type.replace('_', ' ')}`}
+                                                {uploading[type] ? 'Uploading...' : `Upload ${type.replace('_', ' ')}`}
                                             </button>
                                         )}
                                     </div>
@@ -191,10 +191,10 @@ function SessionCard({ session, onUpdate }) {
                                     ) : (
                                         <button
                                             onClick={() => handleFileUpload(`VIDEO_${index}`)}
-                                            disabled={uploading}
+                                            disabled={uploading[`VIDEO_${index}`]}
                                             className="w-full p-4 border-2 border-dashed border-gray-600 rounded hover:border-gray-500 transition-colors"
                                         >
-                                            {uploading ? 'Uploading...' : `Upload Video ${index}`}
+                                            {uploading[`VIDEO_${index}`] ? 'Uploading...' : `Upload Video ${index}`}
                                         </button>
                                     )}
                                 </div>

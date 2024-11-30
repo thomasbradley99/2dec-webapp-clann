@@ -133,17 +133,20 @@ function SessionDetails() {
                     </div>
                 )}
 
-                {session.analysis_video1_url && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-6">Video Analysis</h2>
-                        <video controls className="w-full rounded-lg">
-                            <source src={session.analysis_video1_url} type="video/mp4" />
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-                )}
+                {/* Video Analysis Section */}
+                {[1, 2, 3, 4, 5].map(index => {
+                    const videoUrl = session[`analysis_video${index}_url`];
+                    return videoUrl && (
+                        <div key={index} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-colors mb-6">
+                            <h2 className="text-2xl font-bold mb-4">Video Analysis {index}</h2>
+                            <video controls className="w-full rounded-lg">
+                                <source src={videoUrl} type="video/mp4" />
+                                Your browser does not support the video tag.
+                            </video>
+                        </div>
+                    );
+                })}
 
-                {/* Add this at the bottom */}
                 <div className="mt-12 pt-6 border-t border-gray-700">
                     <div className="flex justify-end">
                         <button
