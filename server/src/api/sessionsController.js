@@ -233,10 +233,14 @@ exports.addAnalysis = async (req, res) => {
                     WHERE id = $3
                     RETURNING *`;
                 break;
-            case 'VIDEO':
+            case 'VIDEO_1':
+            case 'VIDEO_2':
+            case 'VIDEO_3':
+            case 'VIDEO_4':
+            case 'VIDEO_5':
                 updateQuery = `
                     UPDATE Sessions 
-                    SET analysis_video1_url = $1,
+                    SET analysis_video${type.split('_')[1]}_url = $1,
                         reviewed_by = $2,
                         status = 'REVIEWED',
                         updated_at = CURRENT_TIMESTAMP
