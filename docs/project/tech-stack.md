@@ -28,13 +28,6 @@
   - Type-safe operations
   - Built-in with Amplify
 
-## Authentication
-- **AWS Cognito**
-  - Built into Amplify
-  - Handles user types
-  - JWT tokens
-  - Role-based access
-
 ## Storage
 - **AWS S3**
   - For analysis images
@@ -64,7 +57,7 @@ We need to define the GraphQL schema that AppSync will use, based on our Postgre
 - Amplify configuration files
 - RDS security groups
 - S3 bucket policies
-- Cognito user pool settings
+
 
 ### Type Definitions
 Need TypeScript interfaces for:

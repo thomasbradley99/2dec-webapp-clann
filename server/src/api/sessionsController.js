@@ -233,6 +233,16 @@ exports.addAnalysis = async (req, res) => {
                     WHERE id = $3
                     RETURNING *`;
                 break;
+            case 'VIDEO':
+                updateQuery = `
+                    UPDATE Sessions 
+                    SET analysis_video1_url = $1,
+                        reviewed_by = $2,
+                        status = 'REVIEWED',
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $3
+                    RETURNING *`;
+                break;
             default:
                 return res.status(400).json({ error: 'Invalid analysis type' });
         }
@@ -313,6 +323,11 @@ exports.deleteAnalysis = async (req, res) => {
             case 'HEATMAP': updateColumn = 'analysis_image1_url'; break;
             case 'SPRINT_MAP': updateColumn = 'analysis_image2_url'; break;
             case 'GAME_MOMENTUM': updateColumn = 'analysis_image3_url'; break;
+            case 'VIDEO_1': updateColumn = 'analysis_video1_url'; break;
+            case 'VIDEO_2': updateColumn = 'analysis_video2_url'; break;
+            case 'VIDEO_3': updateColumn = 'analysis_video3_url'; break;
+            case 'VIDEO_4': updateColumn = 'analysis_video4_url'; break;
+            case 'VIDEO_5': updateColumn = 'analysis_video5_url'; break;
             default: return res.status(400).json({ error: 'Invalid analysis type' });
         }
 

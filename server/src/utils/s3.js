@@ -9,8 +9,8 @@ const s3Client = new S3Client({
 });
 
 const uploadToS3 = async (file) => {
-    const key = `analysis-images/${Date.now()}-${file.originalname}`;
-    
+    const isVideo = file.mimetype.startsWith('video/');
+    const key = `${isVideo ? 'analysis-videos' : 'analysis-images'}/${Date.now()}-${file.originalname}`;
     const params = {
         Bucket: 'end-nov-webapp-clann',
         Key: key,

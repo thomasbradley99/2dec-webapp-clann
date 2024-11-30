@@ -20,3 +20,14 @@ The Sessions table includes performance metrics stored as JSONB:
 - sprint_distance: Distance covered in sprints (m)
 - high_intensity_sprints: Number of high-intensity sprints
 - top_sprint_speed: Maximum sprint speed (m/s)
+
+## Media Storage
+The Sessions table includes URLs for media analysis:
+- analysis_image1_url: URL for the first analysis image
+- analysis_image2_url: URL for the second analysis image
+- analysis_image3_url: URL for the third analysis image
+- analysis_video1_url: URL for the first analysis video
+- analysis_video2_url: URL for the second analysis video
+- analysis_video3_url: URL for the third analysis video
+- analysis_video4_url: URL for the fourth analysis video
+- analysis_video5_url: URL for the fifth analysis video

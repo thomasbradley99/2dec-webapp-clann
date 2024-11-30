@@ -6,24 +6,20 @@ const multer = require('multer');
 const path = require('path');
 
 // Configure multer first
-const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(__dirname, '../../storage/analysis-images/'));
-    },
-    filename: function (req, file, cb) {
-        cb(null, 'analysis-' + Date.now() + path.extname(file.originalname));
+const storage = multer.memoryStorage();
+
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype.startsWith('image/') || file.mimetype.startsWith('video/')) {
+        cb(null, true);
+    } else {
+        cb(new Error('Only image and video files are allowed!'), false);
     }
-});
+};
 
 const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 5000000 }, // 5MB limit
-    fileFilter: function (req, file, cb) {
-        if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-            return cb(new Error('Only image files are allowed!'));
-        }
-        cb(null, true);
-    }
+    storage: storage,
+    limits: { fileSize: 100 * 1024 * 1024 }, // 100MB limit
+    fileFilter: fileFilter
 });
 
 // Then define routes

@@ -5,6 +5,7 @@ import TeamMetricsForm from '../../components/TeamMetricsForm';
 function SessionCard({ session, onUpdate }) {
     const [isExpanded, setIsExpanded] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     const getAnalysisImage = (type) => {
         switch(type) {
@@ -23,7 +24,7 @@ function SessionCard({ session, onUpdate }) {
     const handleFileUpload = async (type) => {
         const input = document.createElement('input');
         input.type = 'file';
-        input.accept = 'image/*';
+        input.accept = 'video/*, image/*';
         
         input.onchange = async (e) => {
             const file = e.target.files[0];
@@ -65,6 +66,8 @@ function SessionCard({ session, onUpdate }) {
             console.error('Failed to update status:', err);
         }
     };
+
+    const getVideoUrl = (index) => session[`analysis_video${index}_url`];
 
     return (
         <div className="min-h-screen bg-black text-white pb-20">
@@ -169,6 +172,33 @@ function SessionCard({ session, onUpdate }) {
                                     </div>
                                 );
                             })}
+                            {[1, 2, 3, 4, 5].map(index => (
+                                <div key={index} className="bg-gray-900/50 border border-gray-700 p-4 rounded-lg">
+                                    <h4 className="text-blue-400 font-medium mb-4">Video Analysis {index}</h4>
+                                    {getVideoUrl(index) ? (
+                                        <div>
+                                            <video controls className="w-full rounded-lg mb-2">
+                                                <source src={getVideoUrl(index)} type="video/mp4" />
+                                                Your browser does not support the video tag.
+                                            </video>
+                                            <button
+                                                onClick={() => handleDeleteAnalysis(`VIDEO_${index}`)}
+                                                className="text-red-400 hover:text-red-300 px-2 py-1"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button
+                                            onClick={() => handleFileUpload(`VIDEO_${index}`)}
+                                            disabled={uploading}
+                                            className="w-full p-4 border-2 border-dashed border-gray-600 rounded hover:border-gray-500 transition-colors"
+                                        >
+                                            {uploading ? 'Uploading...' : `Upload Video ${index}`}
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
                             <TeamMetricsForm session={session} onUpdate={onUpdate} />
                         </div>
                     )}

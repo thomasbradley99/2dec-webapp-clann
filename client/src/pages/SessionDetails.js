@@ -133,6 +133,16 @@ function SessionDetails() {
                     </div>
                 )}
 
+                {session.analysis_video1_url && (
+                    <div>
+                        <h2 className="text-2xl font-bold mb-6">Video Analysis</h2>
+                        <video controls className="w-full rounded-lg">
+                            <source src={session.analysis_video1_url} type="video/mp4" />
+                            Your browser does not support the video tag.
+                        </video>
+                    </div>
+                )}
+
                 {/* Add this at the bottom */}
                 <div className="mt-12 pt-6 border-t border-gray-700">
                     <div className="flex justify-end">
