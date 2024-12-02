@@ -11,6 +11,7 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
@@ -88,14 +89,23 @@ function Login() {
                     className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 
                              text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
                   />
-                  <input
-                    type="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Password"
-                    className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 
-                             text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
-                  />
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Password"
+                      className="w-full bg-gray-900/50 border border-gray-700 rounded-lg px-4 py-3 
+                               text-white placeholder-gray-500 focus:outline-none focus:border-green-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400"
+                    >
+                      {showPassword ? '🙈' : '👁️'}
+                    </button>
+                  </div>
                   <button 
                     type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 
