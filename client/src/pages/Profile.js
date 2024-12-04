@@ -4,6 +4,9 @@ import teamService from '../services/teamService';
 import authService from '../services/authService';
 import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
+import { loadStripe } from '@stripe/stripe-js';
+
+const stripePromise = loadStripe('pk_test_51QRdu2HwuGVunWPuiliiMDR8pKZn69vUWlJ27MobHRq66FJ2LGd0h7JHjzFS4htWKo6v1oQnCpOtZ4xegSDiw57F00DXGx68uh');
 
 function Profile() {
     const navigate = useNavigate();
@@ -88,6 +91,19 @@ function Profile() {
         }
     };
 
+    const handleUpgrade = async () => {
+        const stripe = await stripePromise;
+        const { error } = await stripe.redirectToCheckout({
+            lineItems: [{ price: 'price_1QReM5HwuGVunWPu2cLxc8i3', quantity: 1 }],
+            mode: 'subscription',
+            successUrl: 'https://your-site.com/success',
+            cancelUrl: 'https://your-site.com/cancel',
+        });
+        if (error) {
+            console.error('Error:', error);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-gray-900 text-white pb-20">
             <Header />
@@ -100,6 +116,17 @@ function Profile() {
                         <div className="space-y-2">
                             <label className="text-sm text-gray-400">Email</label>
                             <p className="text-lg">{user?.email || 'Loading...'}</p>
+                            <p className="text-lg">
+                                {user?.isPremium ? 'Premium User' : 'Demo User'}
+                                {!user?.isPremium && (
+                                    <button
+                                        onClick={handleUpgrade}
+                                        className="ml-4 text-blue-400 underline"
+                                    >
+                                        Upgrade to Premium
+                                    </button>
+                                )}
+                            </p>
                         </div>
                     </div>
 
