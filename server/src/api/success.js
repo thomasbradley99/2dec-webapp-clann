@@ -2,8 +2,9 @@ const express = require('express');
 const router = express.Router();
 
 router.get('/success', (req, res) => {
-    // Redirect to the client-side success page
-    res.redirect('http://localhost:3002/success');
+    // Use environment variable for client URL
+    const clientUrl = process.env.REACT_APP_CLIENT_URL || 'http://localhost:3002';
+    res.redirect(`${clientUrl}/success`);
 });
 
 module.exports = router; 
