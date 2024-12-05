@@ -7,7 +7,8 @@ exports.handleStripeWebhook = async (req, res) => {
 
     console.log('💰 Webhook received:', {
         headers: req.headers['stripe-signature'] ? 'Signature present' : 'No signature',
-        body: req.body
+        body: req.body,
+        timestamp: new Date().toISOString()
     });
 
     try {
@@ -26,10 +27,14 @@ exports.handleStripeWebhook = async (req, res) => {
         console.log('💳 Payment successful:', {
             sessionId: session.id,
             teamId: teamId,
-            subscriptionId: session.subscription
+            subscriptionId: session.subscription,
+            timestamp: new Date().toISOString()
         });
 
         try {
+            // Add logging for the SQL query
+            console.log('🔍 Attempting database update for team:', teamId);
+
             const result = await db.query(`
                 UPDATE Teams 
                 SET is_premium = true,
@@ -43,16 +48,22 @@ exports.handleStripeWebhook = async (req, res) => {
 
             console.log('📝 Database update result:', {
                 success: result.rowCount > 0,
-                updatedTeam: result.rows[0]
+                updatedTeam: result.rows[0],
+                timestamp: new Date().toISOString()
             });
 
             if (result.rowCount === 0) {
                 console.error('❌ No team was updated. Team ID might be invalid:', teamId);
             }
+
+            // Send a success response
+            res.json({ success: true });
         } catch (error) {
             console.error('❌ Database update failed:', error);
+            res.status(500).json({ error: 'Database update failed' });
         }
+    } else {
+        // Handle other event types or send a basic success response
+        res.json({ received: true });
     }
-
-    res.json({ received: true });
 }; 

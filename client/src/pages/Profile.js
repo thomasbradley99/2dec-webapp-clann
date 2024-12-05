@@ -175,21 +175,24 @@ function Profile() {
                                                 <p className="text-sm text-gray-400">
                                                     Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
                                                 </p>
-                                                <p className="text-sm text-gray-400">
-                                                    Status: <span className={
-                                                        team.subscription_status === 'PREMIUM'
-                                                            ? 'text-green-400'
-                                                            : team.subscription_status === 'TRIAL'
-                                                                ? 'text-yellow-400'
-                                                                : 'text-red-400'
-                                                    }>
-                                                        {team.subscription_status}
-                                                    </span>
-                                                </p>
-                                                {!team.isPremium && (
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-sm font-medium">Status:</span>
+                                                    {team.is_premium ? (
+                                                        <span className="px-2 py-1 bg-green-400/10 text-green-400 rounded-full text-xs border border-green-400">
+                                                            ⭐️ PREMIUM
+                                                        </span>
+                                                    ) : (
+                                                        <span className="px-2 py-1 bg-gray-400/10 text-gray-400 rounded-full text-xs border border-gray-400">
+                                                            FREE
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                {!team.is_premium && (
                                                     <button
                                                         onClick={() => handleUpgrade(team.id)}
-                                                        className="mt-2 text-blue-400 underline"
+                                                        className="text-sm px-4 py-2 bg-green-400/10 text-green-400 
+                                                                   rounded-lg border border-green-400 
+                                                                   hover:bg-green-400/20 transition-colors"
                                                     >
                                                         Upgrade to Premium
                                                     </button>

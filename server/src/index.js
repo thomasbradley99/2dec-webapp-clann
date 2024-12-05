@@ -11,6 +11,12 @@ const webhooksController = require('./api/webhooksController');
 // Create Express server
 const app = express();
 
+// Webhook endpoint needs to be BEFORE other middleware
+app.post('/webhook',
+    express.raw({ type: 'application/json' }),
+    webhooksController.handleStripeWebhook
+);
+
 // Configure CORS before other middleware
 app.use(cors({
     origin: 'http://localhost:3002', // Your React app's URL
@@ -18,12 +24,6 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
 }));
-
-// Webhook endpoint needs raw body
-app.post('/webhook',
-    express.raw({ type: 'application/json' }),
-    webhooksController.handleStripeWebhook
-);
 
 // Regular middleware for other routes
 app.use(express.json());
