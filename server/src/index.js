@@ -5,6 +5,7 @@ const authRoutes = require('./api/auth');
 const sessionsRoutes = require('./api/sessions');
 const teamsRoutes = require('./api/teams');
 const stripe = require('stripe')('sk_test_51QRdu2HwuGVunWPukJxTlfse0BPC7LsFxYlJiJjoyEgngwaRwn2QdI19kIwif2BBu7RP7IRLZpXCtwxvqJ4z4Zgd00i1CxnrjP');
+const successRoute = require('./api/success');
 
 // Create Express server
 const app = express();
@@ -29,24 +30,25 @@ app.use((req, res, next) => {
 app.use('/api/auth', authRoutes);        // Add /api prefix
 app.use('/api/sessions', sessionsRoutes); // Add /api prefix
 app.use('/api/teams', teamsRoutes);      // Already has /api prefix
+app.use('/api', successRoute);
 
 app.post('/create-checkout-session', async (req, res) => {
-  try {
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price: 'price_1QReM5HwuGVunWPu2cLxc8i3',
-        quantity: 1,
-      }],
-      mode: 'subscription',
-      success_url: 'https://your-site.com/success',
-      cancel_url: 'https://your-site.com/cancel',
-    });
+    try {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [{
+                price: 'price_1QReM5HwuGVunWPu2cLxc8i3',
+                quantity: 1,
+            }],
+            mode: 'subscription',
+            success_url: 'http://localhost:3002/success',
+            cancel_url: 'http://localhost:3002/cancel',
+        });
 
-    res.json({ id: session.id });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
+        res.json({ id: session.id });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // Error handling middleware
