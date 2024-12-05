@@ -6,7 +6,7 @@ import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
 import { loadStripe } from '@stripe/stripe-js';
 
-const stripePromise = loadStripe('pk_test_51QRdu2HwuGVunWPuiliiMDR8pKZn69vUWlJ27MobHRq66FJ2LGd0h7JHjzFS4htWKo6v1oQnCpOtZ4xegSDiw57F00DXGx68uh');
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
 function Profile() {
     const navigate = useNavigate();
@@ -94,10 +94,10 @@ function Profile() {
     const handleUpgrade = async () => {
         const stripe = await stripePromise;
         const { error } = await stripe.redirectToCheckout({
-            lineItems: [{ price: 'price_1QReM5HwuGVunWPu2cLxc8i3', quantity: 1 }],
+            lineItems: [{ price: process.env.REACT_APP_STRIPE_PRICE_ID, quantity: 1 }],
             mode: 'subscription',
-            successUrl: 'https://your-site.com/success',
-            cancelUrl: 'https://your-site.com/cancel',
+            successUrl: `${process.env.REACT_APP_API_URL}/success`,
+            cancelUrl: `${process.env.REACT_APP_API_URL}/cancel`,
         });
         if (error) {
             console.error('Error:', error);
@@ -133,7 +133,7 @@ function Profile() {
                     {/* Teams Section */}
                     <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
                         <h3 className="text-xl font-semibold mb-4">Your Teams</h3>
-                        
+
                         {loading ? (
                             <p className="text-gray-400">Loading teams...</p>
                         ) : error ? (
@@ -143,7 +143,7 @@ function Profile() {
                         ) : (
                             <div className="space-y-4">
                                 {teams.map(team => (
-                                    <div 
+                                    <div
                                         key={team.id}
                                         className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 hover:border-gray-600"
                                     >
@@ -198,7 +198,7 @@ function Profile() {
                                                     Leave Team
                                                 </button>
                                             )}
-                                            
+
                                             <h4 className="text-lg font-medium">{team.name}</h4>
                                             <div className="mt-2 space-y-1">
                                                 <p className="text-sm text-gray-400">
@@ -219,7 +219,7 @@ function Profile() {
                                                         <p className="text-sm text-gray-400">Loading members...</p>
                                                     ) : (
                                                         teamMembers[team.id]?.map((member, index) => (
-                                                            <div 
+                                                            <div
                                                                 key={index}
                                                                 className="flex items-center justify-between py-2"
                                                             >
@@ -288,14 +288,14 @@ function Profile() {
 
                     {/* Action Buttons */}
                     <div className="space-y-3">
-                        <button 
+                        <button
                             onClick={handleLogout}
                             className="w-full py-3 px-4 bg-gray-900 text-green-400 border border-green-400 
                                      rounded-lg hover:bg-green-400/10 transition-colors"
                         >
                             Logout
                         </button>
-                        <button 
+                        <button
                             onClick={handleDeleteAccount}
                             className="w-full py-3 px-4 bg-gray-900 text-red-400 border border-red-400 
                                      rounded-lg hover:bg-red-400/10 transition-colors"
@@ -309,8 +309,8 @@ function Profile() {
             {/* Feedback Toast */}
             {feedback && (
                 <div className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg z-50 transition-all duration-300
-                              ${feedback.type === 'success' ? 'bg-green-400/20 text-green-400 border border-green-400' : 
-                                                            'bg-red-400/20 text-red-400 border border-red-400'}`}>
+                              ${feedback.type === 'success' ? 'bg-green-400/20 text-green-400 border border-green-400' :
+                        'bg-red-400/20 text-red-400 border border-red-400'}`}>
                     {feedback.message}
                 </div>
             )}
