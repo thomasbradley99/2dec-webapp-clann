@@ -31,3 +31,10 @@ The Sessions table includes URLs for media analysis:
 - analysis_video3_url: URL for the third analysis video
 - analysis_video4_url: URL for the fourth analysis video
 - analysis_video5_url: URL for the fifth analysis video
+
+## Teams Table
+- `id`: UUID, primary key
+- `name`: Team name
+- `team_code`: Unique team code
+- `created_at`: Timestamp of creation
+- `is_premium`: Boolean indicating if the team is premium

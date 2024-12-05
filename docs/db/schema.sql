@@ -22,7 +22,8 @@ CREATE TABLE Teams (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name VARCHAR(255) NOT NULL,
     team_code VARCHAR(10) UNIQUE NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_premium BOOLEAN DEFAULT FALSE
 );
 
 -- Create TeamMembers table
