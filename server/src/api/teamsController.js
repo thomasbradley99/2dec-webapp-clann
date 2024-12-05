@@ -3,6 +3,7 @@ const { MAX_TEAM_MEMBERS } = require('../constants');
 
 exports.getUserTeams = async (req, res) => {
     const userId = req.user.id;
+
     try {
         const result = await db.query(`
             SELECT t.*, tm.is_admin 
@@ -11,11 +12,21 @@ exports.getUserTeams = async (req, res) => {
             WHERE tm.user_id = $1
             ORDER BY t.created_at DESC
         `, [userId]);
-        
-        console.log('Teams fetched for user:', userId, result.rows);
+
+        console.log('👥 Teams data fetched:', {
+            userId: userId,
+            teamsCount: result.rows.length,
+            teamsData: result.rows.map(team => ({
+                id: team.id,
+                name: team.name,
+                subscription_status: team.subscription_status,
+                is_premium: team.is_premium
+            }))
+        });
+
         res.json(result.rows);
     } catch (err) {
-        console.error('Error fetching teams:', err);
+        console.error('❌ Error fetching teams:', err);
         res.status(500).json({ error: 'Failed to fetch teams' });
     }
 };
@@ -23,23 +34,23 @@ exports.getUserTeams = async (req, res) => {
 exports.createTeam = async (req, res) => {
     const { name, team_code } = req.body;
     const userId = req.user.id;
-    
+
     try {
         await db.query('BEGIN');
-        
+
         const teamResult = await db.query(`
             INSERT INTO Teams (name, team_code)
             VALUES ($1, $2)
             RETURNING id, name, team_code
         `, [name, team_code]);
-        
+
         await db.query(`
             INSERT INTO TeamMembers (team_id, user_id, is_admin)
             VALUES ($1, $2, true)
         `, [teamResult.rows[0].id, userId]);
-        
+
         await db.query('COMMIT');
-        
+
         res.json(teamResult.rows[0]);
     } catch (err) {
         await db.query('ROLLBACK');
@@ -51,7 +62,7 @@ exports.createTeam = async (req, res) => {
 exports.joinTeam = async (req, res) => {
     const { team_code } = req.body;
     const userId = req.user.id;
-    
+
     try {
         // First find the team
         const teamResult = await db.query(
@@ -74,8 +85,8 @@ exports.joinTeam = async (req, res) => {
         );
 
         if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
-            return res.status(400).json({ 
-                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
+            return res.status(400).json({
+                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members`
             });
         }
 
@@ -106,9 +117,9 @@ exports.joinTeam = async (req, res) => {
             [teamId, userId]
         );
 
-        res.json({ 
+        res.json({
             message: 'Successfully joined team',
-            team_name: teamDetails.rows[0].name 
+            team_name: teamDetails.rows[0].name
         });
     } catch (err) {
         console.error('Join team error:', err);
@@ -340,8 +351,8 @@ exports.leaveTeam = async (req, res) => {
         );
 
         if (adminCheck.rows[0].admin_count === 1 && userCheck.rows[0]?.is_admin) {
-            return res.status(400).json({ 
-                error: 'Cannot leave team as last admin. Delete team instead.' 
+            return res.status(400).json({
+                error: 'Cannot leave team as last admin. Delete team instead.'
             });
         }
 

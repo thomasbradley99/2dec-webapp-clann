@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { loadStripe } from '@stripe/stripe-js';
 import teamService from '../services/teamService';
 import authService from '../services/authService';
 import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
-import { loadStripe } from '@stripe/stripe-js';
 
+// Initialize Stripe outside the component
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+
+// Debug log to verify the key being used
+console.log('Stripe Key Used:', process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? 'Key exists' : 'Key missing');
 
 function Profile() {
     const navigate = useNavigate();
@@ -92,16 +96,48 @@ function Profile() {
     };
 
     const handleUpgrade = async (teamId) => {
-        const stripe = await stripePromise;
-        const { error } = await stripe.redirectToCheckout({
-            lineItems: [{ price: process.env.REACT_APP_STRIPE_PRICE_ID, quantity: 1 }],
-            mode: 'subscription',
-            successUrl: `${process.env.REACT_APP_API_URL}/success`,
-            cancelUrl: `${process.env.REACT_APP_API_URL}/cancel`,
-            clientReferenceId: teamId,
-        });
-        if (error) {
-            console.error('Error:', error);
+        console.log(' Starting upgrade process for team:', teamId);
+
+        try {
+            const response = await fetch('http://localhost:3001/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ teamId }),
+            });
+
+            console.log('📡 Checkout session response:', response);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const { id: sessionId } = await response.json();
+            console.log('✅ Got session ID:', sessionId);
+
+            const stripe = await stripePromise;
+            if (!stripe) {
+                throw new Error('Failed to load Stripe');
+            }
+
+            console.log('💳 Stripe loaded, redirecting to checkout...');
+
+            const result = await stripe.redirectToCheckout({
+                sessionId,
+            });
+
+            if (result.error) {
+                console.error('❌ Stripe redirect error:', result.error);
+                throw new Error(result.error.message);
+            }
+        } catch (error) {
+            console.error('❌ Payment initiation error:', error);
+            // You might want to show this error to the user
+            setFeedback({
+                type: 'error',
+                message: error.message
+            });
         }
     };
 
@@ -140,7 +176,15 @@ function Profile() {
                                                     Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
                                                 </p>
                                                 <p className="text-sm text-gray-400">
-                                                    Status: <span className={team.isPremium ? 'text-green-400' : 'text-red-400'}>{team.isPremium ? 'Premium' : 'Trial'}</span>
+                                                    Status: <span className={
+                                                        team.subscription_status === 'PREMIUM'
+                                                            ? 'text-green-400'
+                                                            : team.subscription_status === 'TRIAL'
+                                                                ? 'text-yellow-400'
+                                                                : 'text-red-400'
+                                                    }>
+                                                        {team.subscription_status}
+                                                    </span>
                                                 </p>
                                                 {!team.isPremium && (
                                                     <button

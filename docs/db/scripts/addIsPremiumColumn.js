@@ -25,4 +25,14 @@ async function addIsPremiumColumn() {
     }
 }
 
+const addTrialColumn = async () => {
+    await pool.query(`
+        ALTER TABLE Teams 
+        ADD COLUMN trial_ends_at TIMESTAMP,
+        ADD COLUMN subscription_status VARCHAR(20) DEFAULT 'FREE'
+        CHECK (subscription_status IN ('FREE', 'TRIAL', 'PREMIUM'));
+    `);
+};
+
 addIsPremiumColumn();
+addTrialColumn();
