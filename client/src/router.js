@@ -4,6 +4,7 @@ import Profile from './pages/Profile';
 import Sessions from './pages/Sessions';
 import CompanyDashboard from './pages/CompanyDashboard/index';
 import SessionDetails from './pages/SessionDetails';
+import Success from './pages/Success';
 
 const router = createBrowserRouter([
     {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
     {
         path: '/session/:sessionId',
         element: <SessionDetails />,
+    },
+    {
+        path: '/success',
+        element: <Success />,
     }
 ], {
     future: {

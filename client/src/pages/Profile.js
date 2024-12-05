@@ -91,13 +91,14 @@ function Profile() {
         }
     };
 
-    const handleUpgrade = async () => {
+    const handleUpgrade = async (teamId) => {
         const stripe = await stripePromise;
         const { error } = await stripe.redirectToCheckout({
             lineItems: [{ price: process.env.REACT_APP_STRIPE_PRICE_ID, quantity: 1 }],
             mode: 'subscription',
             successUrl: `${process.env.REACT_APP_API_URL}/success`,
             cancelUrl: `${process.env.REACT_APP_API_URL}/cancel`,
+            clientReferenceId: teamId,
         });
         if (error) {
             console.error('Error:', error);
@@ -108,32 +109,17 @@ function Profile() {
         <div className="min-h-screen bg-gray-900 text-white pb-20">
             <Header />
             <div className="max-w-7xl mx-auto p-4 md:p-8">
-                {/* Profile Section */}
                 <div className="space-y-8">
-                    {/* Email Card */}
                     <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
                         <h2 className="text-xl font-semibold mb-4">Profile</h2>
                         <div className="space-y-2">
                             <label className="text-sm text-gray-400">Email</label>
                             <p className="text-lg">{user?.email || 'Loading...'}</p>
-                            <p className="text-lg">
-                                {user?.isPremium ? 'Premium User' : 'Demo User'}
-                                {!user?.isPremium && (
-                                    <button
-                                        onClick={handleUpgrade}
-                                        className="ml-4 text-blue-400 underline"
-                                    >
-                                        Upgrade to Premium
-                                    </button>
-                                )}
-                            </p>
                         </div>
                     </div>
 
-                    {/* Teams Section */}
                     <div className="bg-gray-800 rounded-lg p-6 shadow-lg border border-gray-700">
                         <h3 className="text-xl font-semibold mb-4">Your Teams</h3>
-
                         {loading ? (
                             <p className="text-gray-400">Loading teams...</p>
                         ) : error ? (
@@ -143,62 +129,8 @@ function Profile() {
                         ) : (
                             <div className="space-y-4">
                                 {teams.map(team => (
-                                    <div
-                                        key={team.id}
-                                        className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 hover:border-gray-600"
-                                    >
-                                        {/* Team Header */}
+                                    <div key={team.id} className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 hover:border-gray-600">
                                         <div className="p-6 relative">
-                                            {team.is_admin ? (
-                                                <button
-                                                    onClick={async () => {
-                                                        if (window.confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
-                                                            try {
-                                                                await teamService.deleteTeam(team.id);
-                                                                setFeedback({
-                                                                    type: 'success',
-                                                                    message: 'Team deleted successfully'
-                                                                });
-                                                                fetchTeams();
-                                                            } catch (err) {
-                                                                setFeedback({
-                                                                    type: 'error',
-                                                                    message: err.message || 'Failed to delete team'
-                                                                });
-                                                            }
-                                                        }
-                                                    }}
-                                                    className="absolute top-4 right-4 px-3 py-1.5 text-sm font-medium text-red-400 bg-red-400/10 
-                                                             border border-red-400 rounded hover:bg-red-400/20 transition-colors"
-                                                >
-                                                    Delete Team
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={async () => {
-                                                        if (window.confirm('Are you sure you want to leave this team?')) {
-                                                            try {
-                                                                await teamService.leaveTeam(team.id);
-                                                                setFeedback({
-                                                                    type: 'success',
-                                                                    message: 'Successfully left team'
-                                                                });
-                                                                fetchTeams();
-                                                            } catch (err) {
-                                                                setFeedback({
-                                                                    type: 'error',
-                                                                    message: err.message || 'Failed to leave team'
-                                                                });
-                                                            }
-                                                        }
-                                                    }}
-                                                    className="absolute top-4 right-4 px-3 py-1.5 text-sm font-medium text-yellow-400 bg-yellow-400/10 
-                                                             border border-yellow-400 rounded hover:bg-yellow-400/20 transition-colors"
-                                                >
-                                                    Leave Team
-                                                </button>
-                                            )}
-
                                             <h4 className="text-lg font-medium">{team.name}</h4>
                                             <div className="mt-2 space-y-1">
                                                 <p className="text-sm text-gray-400">
@@ -207,9 +139,19 @@ function Profile() {
                                                 <p className="text-sm text-gray-400">
                                                     Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
                                                 </p>
+                                                <p className="text-sm text-gray-400">
+                                                    Status: <span className={team.isPremium ? 'text-green-400' : 'text-red-400'}>{team.isPremium ? 'Premium' : 'Trial'}</span>
+                                                </p>
+                                                {!team.isPremium && (
+                                                    <button
+                                                        onClick={() => handleUpgrade(team.id)}
+                                                        className="mt-2 text-blue-400 underline"
+                                                    >
+                                                        Upgrade to Premium
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
-
                                         {/* Members List */}
                                         <div className="border-t border-gray-700 bg-gray-800/50">
                                             <div className="p-6">
