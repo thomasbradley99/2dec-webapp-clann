@@ -7,10 +7,10 @@ import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
 
 // Initialize Stripe outside the component
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
 
 // Debug log to verify the key being used
-console.log('Stripe Key Used:', process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY ? 'Key exists' : 'Key missing');
+console.log('Stripe Key Used:', process.env.REACT_APP_STRIPE_PUBLIC_KEY ? 'Key exists' : 'Key missing');
 
 function Profile() {
     const navigate = useNavigate();
