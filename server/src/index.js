@@ -13,7 +13,7 @@ const teamsController = require('./api/teamsController');
 const app = express();
 
 // Webhook endpoint needs to be BEFORE other middleware
-app.post('/webhook',
+app.post('/api/webhook',
     express.raw({ type: 'application/json' }),
     webhooksController.handleStripeWebhook
 );
@@ -98,6 +98,16 @@ app.post('/create-checkout-session', async (req, res) => {
 });
 
 app.post('/teams/:teamId/revert-premium', teamsController.revertPremiumStatus);
+
+// Add a test endpoint
+app.post('/api/webhook-test', express.raw({ type: 'application/json' }), (req, res) => {
+    console.log('Webhook test received:', {
+        headers: req.headers,
+        body: req.body.toString(),
+        timestamp: new Date().toISOString()
+    });
+    res.json({ received: true });
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
