@@ -7,6 +7,7 @@ const teamsRoutes = require('./api/teams');
 const stripe = require('stripe')('sk_test_51QRdu2HwuGVunWPukJxTlfse0BPC7LsFxYlJiJjoyEgngwaRwn2QdI19kIwif2BBu7RP7IRLZpXCtwxvqJ4z4Zgd00i1CxnrjP');
 const successRoute = require('./api/success');
 const webhooksController = require('./api/webhooksController');
+const teamsController = require('./api/teamsController');
 
 // Create Express server
 const app = express();
@@ -95,6 +96,8 @@ app.post('/create-checkout-session', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+app.post('/teams/:teamId/revert-premium', teamsController.revertPremiumStatus);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

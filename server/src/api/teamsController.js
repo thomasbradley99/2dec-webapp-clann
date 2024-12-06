@@ -368,4 +368,30 @@ exports.leaveTeam = async (req, res) => {
         console.error('Leave team error:', err);
         res.status(500).json({ error: 'Failed to leave team' });
     }
+};
+
+exports.revertPremiumStatus = async (req, res) => {
+    const { teamId } = req.params;
+
+    try {
+        const result = await db.query(`
+            UPDATE Teams 
+            SET is_premium = false,
+                subscription_status = 'FREE',
+                subscription_id = NULL,
+                updated_at = CURRENT_TIMESTAMP
+            WHERE id = $1
+            RETURNING *`,
+            [teamId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ error: 'Team not found' });
+        }
+
+        res.json({ success: true, team: result.rows[0] });
+    } catch (error) {
+        console.error('Failed to revert premium status:', error);
+        res.status(500).json({ error: 'Database update failed' });
+    }
 }; 

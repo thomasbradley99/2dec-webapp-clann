@@ -5,6 +5,7 @@ import teamService from '../services/teamService';
 import authService from '../services/authService';
 import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
+import api from '../services/api';
 
 // Initialize Stripe outside the component
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
@@ -96,7 +97,37 @@ function Profile() {
     };
 
     const handleUpgrade = async (teamId) => {
-        console.log(' Starting upgrade process for team:', teamId);
+        console.log('Starting upgrade process for team:', teamId);
+
+        try {
+            const response = await api.post('/create-checkout-session', { teamId });
+            console.log('📡 Checkout session response:', response);
+
+            const { id: sessionId } = response.data;
+            console.log('✅ Got session ID:', sessionId);
+
+            const stripe = await stripePromise;
+            if (!stripe) {
+                throw new Error('Failed to load Stripe');
+            }
+
+            console.log('💳 Stripe loaded, redirecting to checkout...');
+            const result = await stripe.redirectToCheckout({ sessionId });
+
+            if (result.error) {
+                throw new Error(result.error.message);
+            }
+        } catch (error) {
+            console.error('❌ Payment initiation error:', error);
+            setFeedback({
+                type: 'error',
+                message: error.message
+            });
+        }
+    };
+
+    const handleRevertPremium = async (teamId) => {
+        console.log(' Starting revert premium process for team:', teamId);
 
         try {
             const response = await fetch('http://localhost:3001/create-checkout-session', {
@@ -195,6 +226,16 @@ function Profile() {
                                                                    hover:bg-green-400/20 transition-colors"
                                                     >
                                                         Upgrade to Premium
+                                                    </button>
+                                                )}
+                                                {team.is_premium && (
+                                                    <button
+                                                        onClick={() => handleRevertPremium(team.id)}
+                                                        className="text-sm px-4 py-2 bg-red-400/10 text-red-400 
+                                                                   rounded-lg border border-red-400 
+                                                                   hover:bg-red-400/20 transition-colors ml-2"
+                                                    >
+                                                        Revert to Free
                                                     </button>
                                                 )}
                                             </div>
