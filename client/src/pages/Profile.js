@@ -100,10 +100,21 @@ function Profile() {
         console.log('Starting upgrade process for team:', teamId);
 
         try {
-            const response = await api.post('/create-checkout-session', { teamId });
+            const response = await fetch('http://localhost:3001/create-checkout-session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ teamId }),
+            });
+
             console.log('📡 Checkout session response:', response);
 
-            const { id: sessionId } = response.data;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const { id: sessionId } = await response.json();
             console.log('✅ Got session ID:', sessionId);
 
             const stripe = await stripePromise;
@@ -112,13 +123,18 @@ function Profile() {
             }
 
             console.log('💳 Stripe loaded, redirecting to checkout...');
-            const result = await stripe.redirectToCheckout({ sessionId });
+
+            const result = await stripe.redirectToCheckout({
+                sessionId,
+            });
 
             if (result.error) {
+                console.error('❌ Stripe redirect error:', result.error);
                 throw new Error(result.error.message);
             }
         } catch (error) {
             console.error('❌ Payment initiation error:', error);
+            // You might want to show this error to the user
             setFeedback({
                 type: 'error',
                 message: error.message
