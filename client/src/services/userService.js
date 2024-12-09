@@ -13,10 +13,16 @@ const userService = {
         }
     },
 
-    async createUser(email, password) {
+    async createUser(email, password, termsAccepted) {
+        if (!termsAccepted) {
+            throw new Error('Terms & Conditions must be accepted');
+        }
         try {
-            const response = await api.post('/auth/register', { email, password });
-            // Store token and user data
+            const response = await api.post('/auth/register', {
+                email,
+                password,
+                termsAccepted
+            });
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('user', JSON.stringify(response.data));
             return response.data;

@@ -1,42 +1,52 @@
 import { createBrowserRouter } from 'react-router-dom';
 import Login from './pages/Login';
-import Profile from './pages/Profile';
 import Sessions from './pages/Sessions';
-import CompanyDashboard from './pages/CompanyDashboard/index';
 import SessionDetails from './pages/SessionDetails';
+import Profile from './pages/Profile';
 import Success from './pages/Success';
+import CompanyDashboard from './pages/CompanyDashboard';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
 
 const router = createBrowserRouter([
     {
         path: '/',
         element: <Login />,
-    },
-    {
-        path: '/company',
-        element: <CompanyDashboard />,
+        errorElement: <div className="min-h-screen bg-gray-900 text-white p-8 flex items-center justify-center">
+            <div className="text-center">
+                <h1 className="text-2xl font-bold mb-4">Oops! Something went wrong</h1>
+                <p className="text-gray-400">Please try again or contact support if the problem persists.</p>
+            </div>
+        </div>
     },
     {
         path: '/sessions',
-        element: <Sessions />,
+        element: <Sessions />
+    },
+    {
+        path: '/sessions/:id',
+        element: <SessionDetails />
     },
     {
         path: '/profile',
-        element: <Profile />,
-    },
-    {
-        path: '/session/:sessionId',
-        element: <SessionDetails />,
+        element: <Profile />
     },
     {
         path: '/success',
-        element: <Success />,
+        element: <Success />
+    },
+    {
+        path: '/company',
+        element: <CompanyDashboard />
+    },
+    {
+        path: '/terms',
+        element: <Terms />
+    },
+    {
+        path: '/privacy',
+        element: <Privacy />
     }
-], {
-    future: {
-        v7_startTransition: true,
-        v7_relativeSplatPath: true,
-        v7_skipActionErrorRevalidation: true
-    }
-});
+]);
 
-export default router; 
+export default router;

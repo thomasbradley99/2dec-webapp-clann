@@ -11,6 +11,7 @@ function Login() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -24,10 +25,13 @@ function Login() {
         localStorage.setItem('user', JSON.stringify(response));
         navigate(response.role === 'COMPANY_MEMBER' ? '/company' : '/sessions');
       } else {
-        // Registration flow
-        const response = await userService.createUser(email, password);
+        if (!termsAccepted) {
+          setError('You must accept the Terms & Conditions to register');
+          return;
+        }
+        const response = await userService.createUser(email, password, termsAccepted);
         localStorage.setItem('user', JSON.stringify(response));
-        navigate('/sessions'); // New users always go to sessions page
+        navigate('/sessions');
       }
     } catch (err) {
       setError(err.message);
@@ -56,19 +60,17 @@ function Login() {
             <div className="mt-12 lg:mt-0 lg:ml-8 max-w-md w-full mx-auto lg:mx-0">
               <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
                 <div className="flex justify-center gap-8 mb-8">
-                  <button 
+                  <button
                     onClick={() => setIsLogin(true)}
-                    className={`text-lg font-medium transition-colors ${
-                      isLogin ? 'text-green-500' : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`text-lg font-medium transition-colors ${isLogin ? 'text-green-500' : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     Login
                   </button>
-                  <button 
+                  <button
                     onClick={() => setIsLogin(false)}
-                    className={`text-lg font-medium transition-colors ${
-                      !isLogin ? 'text-green-500' : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`text-lg font-medium transition-colors ${!isLogin ? 'text-green-500' : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     Register
                   </button>
@@ -106,7 +108,7 @@ function Login() {
                       {showPassword ? '🙈' : '👁️'}
                     </button>
                   </div>
-                  <button 
+                  <button
                     type="submit"
                     className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 
                              rounded-lg transition-colors focus:outline-none focus:ring-2 
@@ -115,6 +117,23 @@ function Login() {
                     {isLogin ? 'Login' : 'Register'}
                   </button>
                 </form>
+
+                {!isLogin && (
+                  <div className="mt-4">
+                    <label className="flex items-start gap-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={termsAccepted}
+                        onChange={(e) => setTermsAccepted(e.target.checked)}
+                        className="mt-1 rounded border-gray-600 bg-gray-700 text-green-500"
+                      />
+                      <span className="text-sm text-gray-300">
+                        I accept the <a href="/terms" className="text-green-500 hover:underline" target="_blank">Terms & Conditions</a> and
+                        <a href="/privacy" className="text-green-500 hover:underline" target="_blank"> Privacy Policy</a>
+                      </span>
+                    </label>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -146,8 +165,8 @@ function Login() {
           ].map(feature => (
             <div key={feature.title} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
                                       hover:border-green-500/30 transition-all transform hover:-translate-y-1">
-              <img 
-                src={feature.image} 
+              <img
+                src={feature.image}
                 alt={feature.title}
                 className="w-full h-auto object-contain rounded-lg bg-black/30"
               />
@@ -172,11 +191,11 @@ function Login() {
               <span className="text-3xl">🚀</span>
             </div>
             <p className="text-gray-400 max-w-2xl mx-auto">
-              Watch AI automatically identify and track player movements, measuring top speeds, 
+              Watch AI automatically identify and track player movements, measuring top speeds,
               sprint distances, and acceleration patterns in real-time
             </p>
           </div>
-          
+
           {/* Video Container */}
           <div className="w-full bg-black">
             <div className="max-w-4xl mx-auto">

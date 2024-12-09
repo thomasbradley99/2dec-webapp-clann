@@ -14,12 +14,12 @@ exports.login = async (req, res) => {
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
-            
-            res.json({ 
+
+            res.json({
                 token,
-                id: user.id, 
-                email: user.email, 
-                role: user.role 
+                id: user.id,
+                email: user.email,
+                role: user.role
             });
         } else {
             res.status(401).json({ error: "Invalid credentials" });
@@ -30,21 +30,25 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, termsAccepted } = req.body;
+
+    if (!termsAccepted) {
+        return res.status(400).json({ error: "Terms & Conditions must be accepted" });
+    }
+
     try {
         const hashedPassword = await bcrypt.hash(password, 10);
         const result = await db.query(
             "INSERT INTO Users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role",
             [email, hashedPassword, "USER"]
         );
-        
-        // Create JWT token for new user
+
         const token = jwt.sign(
             { id: result.rows[0].id, email, role: "USER" },
             process.env.JWT_SECRET,
             { expiresIn: '24h' }
         );
-        
+
         res.json({
             token,
             ...result.rows[0]
@@ -61,7 +65,7 @@ exports.deleteAccount = async (req, res) => {
 
         // Delete user's sessions first
         await db.query("DELETE FROM Sessions WHERE uploaded_by = $1", [userId]);
-        
+
         // Delete user from TeamMembers
         await db.query("DELETE FROM TeamMembers WHERE user_id = $1", [userId]);
 
