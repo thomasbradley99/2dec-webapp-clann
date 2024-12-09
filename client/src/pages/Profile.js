@@ -166,25 +166,29 @@ function Profile() {
                                 {teams.map(team => (
                                     <div key={team.id} className="bg-gray-900 rounded-lg border border-gray-700 overflow-hidden transition-all duration-200 hover:border-gray-600">
                                         <div className="p-6 relative">
-                                            <h4 className="text-lg font-medium">{team.name}</h4>
-                                            <div className="mt-2 space-y-1">
-                                                <p className="text-sm text-gray-400">
-                                                    Team Code: <span className="font-mono">{team.team_code}</span>
-                                                </p>
-                                                <p className="text-sm text-gray-400">
-                                                    Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
-                                                </p>
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span className="text-sm font-medium">Status:</span>
-                                                    {team.is_premium ? (
-                                                        <span className="px-2 py-1 bg-green-400/10 text-green-400 rounded-full text-xs border border-green-400">
-                                                            ⭐️ PREMIUM
-                                                        </span>
-                                                    ) : (
-                                                        <span className="px-2 py-1 bg-gray-400/10 text-gray-400 rounded-full text-xs border border-gray-400">
-                                                            FREE
-                                                        </span>
-                                                    )}
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h4 className="text-lg font-medium">{team.name}</h4>
+                                                    <div className="mt-2 space-y-1">
+                                                        <p className="text-sm text-gray-400">
+                                                            Team Code: <span className="font-mono">{team.team_code}</span>
+                                                        </p>
+                                                        <p className="text-sm text-gray-400">
+                                                            Role: <span className={team.is_admin ? 'text-green-400' : ''}>{team.is_admin ? 'Admin' : 'Member'}</span>
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-sm font-medium">Status:</span>
+                                                            {team.is_premium ? (
+                                                                <span className="px-2 py-1 bg-green-400/10 text-green-400 rounded-full text-xs border border-green-400">
+                                                                    ⭐️ PREMIUM
+                                                                </span>
+                                                            ) : (
+                                                                <span className="px-2 py-1 bg-gray-400/10 text-gray-400 rounded-full text-xs border border-gray-400">
+                                                                    FREE
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 {!team.is_premium && (
                                                     <button
