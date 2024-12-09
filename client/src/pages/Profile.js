@@ -7,11 +7,15 @@ import NavBar from '../components/ui/NavBar';
 import Header from '../components/ui/Header';
 import api from '../services/api';
 
-// Initialize Stripe outside the component
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+// Debug log to verify the key
+console.log('Stripe Public Key:', process.env.REACT_APP_STRIPE_PUBLIC_KEY ? 'Present' : 'Missing');
 
-// Debug log to verify the key being used
-console.log('Stripe Key Used:', process.env.REACT_APP_STRIPE_PUBLIC_KEY ? 'Key exists' : 'Key missing');
+// Add debugging for the Stripe key
+const STRIPE_PUBLIC_KEY = process.env.REACT_APP_STRIPE_PUBLIC_KEY;
+console.log('Initializing Stripe with key:', STRIPE_PUBLIC_KEY ? 'Key exists' : 'Key missing');
+
+// Initialize Stripe outside component
+const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
 function Profile() {
     const navigate = useNavigate();
@@ -97,10 +101,17 @@ function Profile() {
     };
 
     const handleUpgrade = async (teamId) => {
-        console.log('Starting upgrade process for team:', teamId);
-
         try {
-            const response = await fetch('http://localhost:3001/create-checkout-session', {
+            console.log('Starting upgrade process...');
+
+            // Get Stripe instance
+            const stripe = await stripePromise;
+            if (!stripe) {
+                throw new Error('Failed to initialize Stripe');
+            }
+
+            // Create checkout session
+            const response = await fetch(`${process.env.REACT_APP_API_URL}/create-checkout-session`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -108,37 +119,24 @@ function Profile() {
                 body: JSON.stringify({ teamId }),
             });
 
-            console.log('📡 Checkout session response:', response);
-
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                const error = await response.json();
+                throw new Error(error.message || 'Failed to create checkout session');
             }
 
             const { id: sessionId } = await response.json();
-            console.log('✅ Got session ID:', sessionId);
+            console.log('Created checkout session:', sessionId);
 
-            const stripe = await stripePromise;
-            if (!stripe) {
-                throw new Error('Failed to load Stripe');
-            }
+            // Redirect to checkout
+            const { error } = await stripe.redirectToCheckout({ sessionId });
 
-            console.log('💳 Stripe loaded, redirecting to checkout...');
-
-            const result = await stripe.redirectToCheckout({
-                sessionId,
-            });
-
-            if (result.error) {
-                console.error('❌ Stripe redirect error:', result.error);
-                throw new Error(result.error.message);
+            if (error) {
+                console.error('Stripe redirect error:', error);
+                throw error;
             }
         } catch (error) {
-            console.error('❌ Payment initiation error:', error);
-            // You might want to show this error to the user
-            setFeedback({
-                type: 'error',
-                message: error.message
-            });
+            console.error('Payment flow error:', error);
+            alert('Payment initialization failed: ' + error.message);
         }
     };
 
@@ -146,7 +144,7 @@ function Profile() {
         console.log(' Starting revert premium process for team:', teamId);
 
         try {
-            const response = await fetch('http://localhost:3001/create-checkout-session', {
+            const response = await fetch('http://localhost:3001/api/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
