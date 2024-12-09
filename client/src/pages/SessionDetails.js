@@ -6,7 +6,7 @@ import Header from '../components/ui/Header';
 
 function SessionDetails() {
     const navigate = useNavigate();
-    const { sessionId } = useParams();
+    const { id } = useParams();
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -14,7 +14,7 @@ function SessionDetails() {
     useEffect(() => {
         const fetchSession = async () => {
             try {
-                const data = await sessionService.getSessionDetails(sessionId);
+                const data = await sessionService.getSessionDetails(id);
                 console.log("Fetched session data:", data);
                 setSession(data);
             } catch (error) {
@@ -25,12 +25,12 @@ function SessionDetails() {
             }
         };
         fetchSession();
-    }, [sessionId]);
+    }, [id]);
 
     const handleDelete = async () => {
         if (window.confirm('Are you sure you want to delete this session? This action cannot be undone.')) {
             try {
-                await sessionService.deleteSession(sessionId);
+                await sessionService.deleteSession(id);
                 navigate('/sessions');
             } catch (err) {
                 console.error('Error deleting session:', err);
@@ -51,8 +51,8 @@ function SessionDetails() {
                     <h1 className="text-4xl font-bold mb-4">{session.team_name}</h1>
                     <div className="flex flex-wrap items-center gap-4">
                         <span className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 
-                            ${session.status === 'PENDING' 
-                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' 
+                            ${session.status === 'PENDING'
+                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
                                 : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
                             ⚡️ {session.status}
                         </span>
@@ -77,26 +77,26 @@ function SessionDetails() {
                                     return order.indexOf(keyA) - order.indexOf(keyB);
                                 })
                                 .map(([key, value]) => (
-                                    <div key={key} 
+                                    <div key={key}
                                         className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 
                                                  hover:border-green-500/30 transition-colors">
                                         <div className="flex items-center gap-3 mb-2">
                                             <span className="text-2xl">
-                                                {key.includes('sprint') ? '⚡️' : 
-                                                 key.includes('distance') ? '📏' : 
-                                                 key.includes('speed') ? '🚀' : '📊'}
+                                                {key.includes('sprint') ? '⚡️' :
+                                                    key.includes('distance') ? '📏' :
+                                                        key.includes('speed') ? '🚀' : '📊'}
                                             </span>
                                             <h3 className="text-sm font-medium text-gray-400">
-                                                {key.split('_').map(word => 
+                                                {key.split('_').map(word =>
                                                     word.charAt(0).toUpperCase() + word.slice(1)
                                                 ).join(' ')}
                                             </h3>
                                         </div>
                                         <p className="text-3xl font-bold">
                                             {value}
-                                            {key.includes('sprint_distance') ? ' m' : 
-                                             key.includes('total_distance') ? ' km' : 
-                                             key.includes('speed') ? ' m/s' : ''}
+                                            {key.includes('sprint_distance') ? ' m' :
+                                                key.includes('total_distance') ? ' km' :
+                                                    key.includes('speed') ? ' m/s' : ''}
                                         </p>
                                     </div>
                                 ))}
@@ -114,15 +114,15 @@ function SessionDetails() {
                                 { type: 'SPRINT MAP', icon: '⚡', url: session.analysis_image2_url },
                                 { type: 'GAME MOMENTUM', icon: '📈', url: session.analysis_image3_url }
                             ].map(analysis => analysis.url && (
-                                <div key={analysis.type} 
+                                <div key={analysis.type}
                                     className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
                                              hover:border-green-500/30 transition-colors">
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className="text-2xl">{analysis.icon}</span>
                                         <h3 className="text-xl font-bold">{analysis.type}</h3>
                                     </div>
-                                    <img 
-                                        src={analysis.url} 
+                                    <img
+                                        src={analysis.url}
                                         alt={`${analysis.type} Analysis`}
                                         className="w-full rounded-lg object-contain bg-black/30"
                                         style={{ maxHeight: '300px' }}

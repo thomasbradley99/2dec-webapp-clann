@@ -21,9 +21,9 @@ const sessionService = {
 
     createSession: async (url, teamName) => {
         try {
-            const response = await api.post('/sessions/create', { 
-                footage_url: url, 
-                team_name: teamName 
+            const response = await api.post('/sessions/create', {
+                footage_url: url,
+                team_name: teamName
             });
             return response.data;
         } catch (error) {
@@ -99,19 +99,11 @@ const sessionService = {
         }
     },
 
-    getSessionDetails: async (sessionId) => {
+    getSessionDetails: async (id) => {
         try {
-            console.log('Fetching session details for:', sessionId);
-            const response = await api.get(`/sessions/${sessionId}`);
-            console.log('Session details response:', response.data);
+            const response = await api.get(`/sessions/${id}`);
             return response.data;
         } catch (error) {
-            console.error('Session details error:', {
-                status: error.response?.status,
-                data: error.response?.data,
-                message: error.message,
-                fullError: error
-            });
             throw new Error(error.response?.data?.error || 'Failed to fetch session details');
         }
     },
