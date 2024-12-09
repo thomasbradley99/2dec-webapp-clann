@@ -140,52 +140,6 @@ function Profile() {
         }
     };
 
-    const handleRevertPremium = async (teamId) => {
-        console.log(' Starting revert premium process for team:', teamId);
-
-        try {
-            const response = await fetch('http://localhost:3001/api/create-checkout-session', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ teamId }),
-            });
-
-            console.log('📡 Checkout session response:', response);
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const { id: sessionId } = await response.json();
-            console.log('✅ Got session ID:', sessionId);
-
-            const stripe = await stripePromise;
-            if (!stripe) {
-                throw new Error('Failed to load Stripe');
-            }
-
-            console.log('💳 Stripe loaded, redirecting to checkout...');
-
-            const result = await stripe.redirectToCheckout({
-                sessionId,
-            });
-
-            if (result.error) {
-                console.error('❌ Stripe redirect error:', result.error);
-                throw new Error(result.error.message);
-            }
-        } catch (error) {
-            console.error('❌ Payment initiation error:', error);
-            // You might want to show this error to the user
-            setFeedback({
-                type: 'error',
-                message: error.message
-            });
-        }
-    };
-
     return (
         <div className="min-h-screen bg-gray-900 text-white pb-20">
             <Header />
@@ -240,16 +194,6 @@ function Profile() {
                                                                    hover:bg-green-400/20 transition-colors"
                                                     >
                                                         Upgrade to Premium
-                                                    </button>
-                                                )}
-                                                {team.is_premium && (
-                                                    <button
-                                                        onClick={() => handleRevertPremium(team.id)}
-                                                        className="text-sm px-4 py-2 bg-red-400/10 text-red-400 
-                                                                   rounded-lg border border-red-400 
-                                                                   hover:bg-red-400/20 transition-colors ml-2"
-                                                    >
-                                                        Revert to Free
                                                     </button>
                                                 )}
                                             </div>
