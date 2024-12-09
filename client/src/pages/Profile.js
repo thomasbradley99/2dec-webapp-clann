@@ -17,6 +17,17 @@ console.log('Initializing Stripe with key:', STRIPE_PUBLIC_KEY ? 'Key exists' : 
 // Initialize Stripe outside component
 const stripePromise = loadStripe(STRIPE_PUBLIC_KEY);
 
+// Add the generateShareMessage function
+const generateShareMessage = (teamCode) => {
+    const message = `🏃‍♂️ Join my team on Clann AI to see our game analysis!\n\n` +
+        `1. Go to https://clannai.com\n` +
+        `2. Create an account or sign in\n` +
+        `3. Click "Join Team"\n` +
+        `4. Enter team code: ${teamCode}\n\n` +
+        `See you there! 🎮`;
+    return message;
+};
+
 function Profile() {
     const navigate = useNavigate();
     const [teams, setTeams] = useState([]);
@@ -190,16 +201,35 @@ function Profile() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                {!team.is_premium && (
+                                                <div className="flex flex-col gap-2">
+                                                    {!team.is_premium && (
+                                                        <button
+                                                            onClick={() => handleUpgrade(team.id)}
+                                                            className="text-sm px-4 py-2 bg-green-400/10 text-green-400 
+                                                                       rounded-lg border border-green-400 
+                                                                       hover:bg-green-400/20 transition-colors"
+                                                        >
+                                                            Upgrade to Premium
+                                                        </button>
+                                                    )}
                                                     <button
-                                                        onClick={() => handleUpgrade(team.id)}
-                                                        className="text-sm px-4 py-2 bg-green-400/10 text-green-400 
-                                                                   rounded-lg border border-green-400 
-                                                                   hover:bg-green-400/20 transition-colors"
+                                                        onClick={() => {
+                                                            const message = generateShareMessage(team.team_code);
+                                                            navigator.clipboard.writeText(message);
+                                                            setFeedback({
+                                                                type: 'success',
+                                                                message: 'Invite message copied to clipboard!'
+                                                            });
+                                                        }}
+                                                        className="text-sm px-4 py-2 bg-blue-400/10 text-blue-400 
+                                                                   rounded-lg border border-blue-400 
+                                                                   hover:bg-blue-400/20 transition-colors
+                                                                   flex items-center justify-center gap-2"
                                                     >
-                                                        Upgrade to Premium
+                                                        <span>📋</span>
+                                                        Share Team Code
                                                     </button>
-                                                )}
+                                                </div>
                                             </div>
                                         </div>
                                         {/* Members List */}
