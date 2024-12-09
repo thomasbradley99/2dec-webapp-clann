@@ -1,18 +1,35 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import teamService from '../services/teamService';
 
 function Success() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const sessionId = searchParams.get('session_id');
 
     useEffect(() => {
-        // Wait a few seconds for the webhook to process
-        const timer = setTimeout(() => {
-            handleProfileRedirect();
-        }, 5000);
+        const checkStatus = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem('user'));
+                const teamId = user?.teamId;
 
-        return () => clearTimeout(timer);
-    }, []);
+                if (!teamId) {
+                    console.error('No team ID found');
+                    return;
+                }
+
+                const response = await teamService.getTeamDetails(teamId);
+                if (response.data.is_premium) {
+                    navigate('/profile');
+                }
+            } catch (error) {
+                console.error('Error checking team status:', error);
+            }
+        };
+
+        const interval = setInterval(checkStatus, 1000);
+        return () => clearInterval(interval);
+    }, [navigate]);
 
     const handleProfileRedirect = () => {
         navigate('/profile');

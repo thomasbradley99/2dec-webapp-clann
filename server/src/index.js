@@ -29,13 +29,13 @@ console.log('Stripe Configuration:', {
     webhookSecretExists: !!process.env.STRIPE_WEBHOOK_SECRET
 });
 
-// Webhook endpoint needs raw body
+// Webhook endpoint needs raw body - MUST BE FIRST
 app.post('/api/webhook',
     express.raw({ type: 'application/json' }),
-    require('./api/webhooksController').handleStripeWebhook
+    webhooksController.handleStripeWebhook
 );
 
-// Regular middleware for other routes
+// THEN other middleware
 app.use(cors({
     origin: process.env.CLIENT_URL,
     credentials: true

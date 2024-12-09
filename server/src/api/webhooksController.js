@@ -6,64 +6,54 @@ exports.handleStripeWebhook = async (req, res) => {
     let event;
 
     console.log('💰 Webhook received:', {
-        headers: req.headers['stripe-signature'] ? 'Signature present' : 'No signature',
-        body: req.body,
+        headers: req.headers,
+        signaturePresent: !!sig,
+        bodyType: typeof req.body,
+        bodyLength: req.body.length,
         timestamp: new Date().toISOString()
     });
 
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-    } catch (err) {
-        console.error('❌ Webhook signature verification failed:', err);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
-    }
+        console.log('✅ Event constructed successfully:', event.type);
 
-    console.log('✅ Webhook verified, event type:', event.type);
+        if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            console.log('Session data:', session);
 
-    if (event.type === 'checkout.session.completed') {
-        const session = event.data.object;
-        const teamId = session.client_reference_id;
+            const teamId = session.client_reference_id;
 
-        console.log('💳 Payment successful:', {
-            sessionId: session.id,
-            teamId: teamId,
-            subscriptionId: session.subscription,
-            timestamp: new Date().toISOString()
-        });
+            try {
+                const result = await db.query(`
+                    UPDATE Teams 
+                    SET is_premium = true,
+                        subscription_status = 'PREMIUM',
+                        subscription_id = $1,
+                        updated_at = CURRENT_TIMESTAMP
+                    WHERE id = $2
+                    RETURNING *`,
+                    [session.subscription, teamId]
+                );
 
-        try {
-            // Add logging for the SQL query
-            console.log('🔍 Attempting database update for team:', teamId);
+                // Send immediate response after database update
+                return res.status(200).json({ received: true });
 
-            const result = await db.query(`
-                UPDATE Teams 
-                SET is_premium = true,
-                    subscription_status = 'PREMIUM',
-                    subscription_id = $1,
-                    updated_at = CURRENT_TIMESTAMP
-                WHERE id = $2
-                RETURNING *`,
-                [session.subscription, teamId]
-            );
-
-            console.log('📝 Database update result:', {
-                success: result.rowCount > 0,
-                updatedTeam: result.rows[0],
-                timestamp: new Date().toISOString()
-            });
-
-            if (result.rowCount === 0) {
-                console.error('❌ No team was updated. Team ID might be invalid:', teamId);
+            } catch (error) {
+                console.error('Database error:', error);
+                return res.status(500).json({ error: 'Database update failed' });
             }
-
-            // Send a success response
-            res.json({ success: true });
-        } catch (error) {
-            console.error('❌ Database update failed:', error);
-            res.status(500).json({ error: 'Database update failed' });
         }
-    } else {
-        // Handle other event types or send a basic success response
-        res.json({ received: true });
+
+        // Always respond to unhandled event types
+        return res.status(200).json({ received: true });
+
+    } catch (err) {
+        console.error('❌ Webhook Error:', {
+            message: err.message,
+            stack: err.stack,
+            signature: sig ? 'Present' : 'Missing',
+            secret: process.env.STRIPE_WEBHOOK_SECRET ? 'Present' : 'Missing'
+        });
+        return res.status(400).json({ error: `Webhook Error: ${err.message}` });
     }
 }; 
