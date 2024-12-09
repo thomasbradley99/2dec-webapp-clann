@@ -36,7 +36,7 @@ function Sessions() {
     e.preventDefault();
     setIsLoading(true);
     setFeedback(null);
-    
+
     if (!url.trim()) {
       setFeedback({
         type: 'error',
@@ -65,12 +65,24 @@ function Sessions() {
       setIsLoading(false);
       return;
     }
-    
+
     try {
       const response = await sessionService.createSession(url.trim(), teamName.trim());
       setFeedback({
         type: 'success',
-        message: `Success! Your team code is: ${response.team_code}`,
+        message: (
+          <div className="flex flex-col gap-4">
+            <p>Success! Your team code is: <span className="font-bold">{response.team_code}</span></p>
+            <button
+              onClick={() => copyToClipboard(response.team_code)}
+              className="text-sm px-4 py-2 bg-green-500/20 text-green-400 
+                         rounded-lg border border-green-500 
+                         hover:bg-green-500/30 transition-colors"
+            >
+              📋 Copy Invite Message
+            </button>
+          </div>
+        )
       });
       setUrl('');
       setTeamName('');
@@ -116,17 +128,17 @@ function Sessions() {
 
   const fetchSessions = async () => {
     try {
-        console.log('Attempting to fetch sessions...');  // Debug log
-        const response = await sessionService.getSessions();
-        console.log('Sessions fetched:', response);  // Debug log
-        setSessions(response || []);
+      console.log('Attempting to fetch sessions...');  // Debug log
+      const response = await sessionService.getSessions();
+      console.log('Sessions fetched:', response);  // Debug log
+      setSessions(response || []);
     } catch (err) {
-        console.error('Failed to fetch sessions:', err);
-        setFeedback({
-            type: 'error',
-            message: err.message || 'Failed to fetch sessions'
-        });
-        setSessions([]);
+      console.error('Failed to fetch sessions:', err);
+      setFeedback({
+        type: 'error',
+        message: err.message || 'Failed to fetch sessions'
+      });
+      setSessions([]);
     }
   };
 
@@ -154,13 +166,32 @@ function Sessions() {
     }));
   };
 
+  const generateShareMessage = (teamCode) => {
+    const message = `🏃‍♂️ Join my team on Clann AI to see our game analysis!\n\n` +
+      `1. Go to https://clannai.com\n` +
+      `2. Create an account or sign in\n` +
+      `3. Click "Join Team"\n` +
+      `4. Enter team code: ${teamCode}\n\n` +
+      `See you there! 🎮`;
+    return message;
+  };
+
+  const copyToClipboard = (teamCode) => {
+    const message = generateShareMessage(teamCode);
+    navigator.clipboard.writeText(message);
+    setFeedback({
+      type: 'success',
+      message: 'Invite message copied to clipboard! Share it with your team.'
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-900 text-white pb-20">
       <Header />
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
           <h2>Access Sessions</h2>
-          
+
           {feedback && (
             <div style={{
               padding: '10px',
@@ -173,16 +204,16 @@ function Sessions() {
             </div>
           )}
 
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: '1fr 1fr', 
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr 1fr',
             gap: '20px',
             marginBottom: '30px'
           }}>
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: '#333333', 
-              borderRadius: '8px' 
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#333333',
+              borderRadius: '8px'
             }}>
               <h3>Upload New Game</h3>
               <form onSubmit={handleUpload}>
@@ -191,9 +222,9 @@ function Sessions() {
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   placeholder="Game Footage URL"
-                  style={{ 
-                    width: '100%', 
-                    marginBottom: '10px', 
+                  style={{
+                    width: '100%',
+                    marginBottom: '10px',
                     padding: '8px',
                     borderRadius: '4px',
                     border: '1px solid #555',
@@ -206,9 +237,9 @@ function Sessions() {
                   value={teamName}
                   onChange={(e) => setTeamName(e.target.value)}
                   placeholder="Team Name"
-                  style={{ 
-                    width: '100%', 
-                    marginBottom: '10px', 
+                  style={{
+                    width: '100%',
+                    marginBottom: '10px',
                     padding: '8px',
                     borderRadius: '4px',
                     border: '1px solid #555',
@@ -216,7 +247,7 @@ function Sessions() {
                     color: 'white'
                   }}
                 />
-                <button 
+                <button
                   type="submit"
                   disabled={isLoading || !url.trim() || !teamName.trim()}
                   style={{
@@ -234,10 +265,10 @@ function Sessions() {
               </form>
             </div>
 
-            <div style={{ 
-              padding: '20px', 
-              backgroundColor: '#333333', 
-              borderRadius: '8px' 
+            <div style={{
+              padding: '20px',
+              backgroundColor: '#333333',
+              borderRadius: '8px'
             }}>
               <h3>Join Existing Team</h3>
               <form onSubmit={handleJoinTeam}>
@@ -247,9 +278,9 @@ function Sessions() {
                   onChange={(e) => setTeamCode(e.target.value)}
                   placeholder="Enter Team Code"
                   maxLength={6}
-                  style={{ 
-                    width: '100%', 
-                    marginBottom: '10px', 
+                  style={{
+                    width: '100%',
+                    marginBottom: '10px',
                     padding: '8px',
                     borderRadius: '4px',
                     border: '1px solid #555',
@@ -257,8 +288,8 @@ function Sessions() {
                     color: 'white'
                   }}
                 />
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   disabled={isLoading}
                   style={{
                     width: '100%',
@@ -277,21 +308,21 @@ function Sessions() {
           </div>
 
           <div className="mt-8">
-              <h2 className="text-xl font-bold mb-6">Your Sessions</h2>
-              {isLoading ? (
-                  <p className="text-gray-400">Loading sessions...</p>
-              ) : sessions.length === 0 ? (
-                  <p className="text-gray-400">No sessions uploaded yet.</p>
-              ) : (
-                  <div className="space-y-4">
-                      {sessions.map(session => (
-                          <SessionCard 
-                              key={session.id} 
-                              session={session}
-                          />
-                      ))}
-                  </div>
-              )}
+            <h2 className="text-xl font-bold mb-6">Your Sessions</h2>
+            {isLoading ? (
+              <p className="text-gray-400">Loading sessions...</p>
+            ) : sessions.length === 0 ? (
+              <p className="text-gray-400">No sessions uploaded yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {sessions.map(session => (
+                  <SessionCard
+                    key={session.id}
+                    session={session}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
