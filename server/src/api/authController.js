@@ -2,6 +2,16 @@ const bcrypt = require("bcryptjs");
 const jwt = require('jsonwebtoken');
 const db = require("../db");
 
+const generateToken = (user) => {
+    return jwt.sign(
+        { id: user.id, email: user.email },
+        process.env.JWT_SECRET,
+        { expiresIn: '24h' }
+    );
+};
+
+const ST_MARYS_TEAM_ID = '2470d524-e6e1-42f4-8d82-15bc8c833ac9';
+
 exports.login = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -30,31 +40,66 @@ exports.login = async (req, res) => {
 };
 
 exports.register = async (req, res) => {
-    const { email, password, termsAccepted } = req.body;
-
-    if (!termsAccepted) {
-        return res.status(400).json({ error: "Terms & Conditions must be accepted" });
-    }
-
     try {
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const result = await db.query(
-            "INSERT INTO Users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING id, email, role",
-            [email, hashedPassword, "USER"]
-        );
+        console.log('Starting registration process...');
+        const { email, password } = req.body;
 
-        const token = jwt.sign(
-            { id: result.rows[0].id, email, role: "USER" },
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' }
-        );
+        await db.query('BEGIN');
 
-        res.json({
-            token,
-            ...result.rows[0]
+        try {
+            // Create the user
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const newUser = await db.query(
+                'INSERT INTO Users (email, password_hash, role) VALUES ($1, $2, $3) RETURNING *',
+                [email, hashedPassword, 'USER']
+            );
+            console.log('User created:', newUser.rows[0]);
+
+            // Verify St Mary's team exists
+            const teamCheck = await db.query(
+                'SELECT * FROM Teams WHERE id = $1',
+                [ST_MARYS_TEAM_ID]
+            );
+            console.log('Team check result:', teamCheck.rows[0]);
+
+            // Add to St Mary's team
+            const teamMember = await db.query(
+                'INSERT INTO TeamMembers (user_id, team_id, is_admin) VALUES ($1, $2, $3) RETURNING *',
+                [newUser.rows[0].id, ST_MARYS_TEAM_ID, false]
+            );
+            console.log('Successfully added to team:', teamMember.rows[0]);
+
+            await db.query('COMMIT');
+            console.log('Transaction committed successfully');
+
+            const token = jwt.sign(
+                {
+                    id: newUser.rows[0].id,
+                    email: newUser.rows[0].email,
+                    teamId: ST_MARYS_TEAM_ID
+                },
+                process.env.JWT_SECRET
+            );
+
+            res.status(201).json({
+                token,
+                user: {
+                    ...newUser.rows[0],
+                    teamId: ST_MARYS_TEAM_ID
+                }
+            });
+
+        } catch (error) {
+            await db.query('ROLLBACK');
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('Registration error:', error);
+        res.status(500).json({
+            error: 'Registration failed',
+            details: error.message
         });
-    } catch (err) {
-        res.status(500).json({ error: err.message });
     }
 };
 
@@ -62,16 +107,9 @@ exports.deleteAccount = async (req, res) => {
     const userId = req.user.id;
     try {
         await db.query('BEGIN');
-
-        // Delete user's sessions first
         await db.query("DELETE FROM Sessions WHERE uploaded_by = $1", [userId]);
-
-        // Delete user from TeamMembers
         await db.query("DELETE FROM TeamMembers WHERE user_id = $1", [userId]);
-
-        // Delete user from Users table
         await db.query("DELETE FROM Users WHERE id = $1", [userId]);
-
         await db.query('COMMIT');
         res.json({ message: "Account deleted successfully" });
     } catch (err) {
@@ -79,4 +117,10 @@ exports.deleteAccount = async (req, res) => {
         console.error('Account deletion failed:', err);
         res.status(500).json({ error: 'Failed to delete account' });
     }
+};
+
+module.exports = {
+    register: exports.register,
+    deleteAccount: exports.deleteAccount,
+    login: exports.login
 };

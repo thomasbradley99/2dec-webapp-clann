@@ -7,7 +7,9 @@ const pool = new Pool({
     database: process.env.DB_NAME,
     password: process.env.DB_PASSWORD,
     port: process.env.DB_PORT,
-    ssl: { rejectUnauthorized: false }
+    ssl: {
+        rejectUnauthorized: false
+    }
 });
 
 async function getCurrentSchema() {
@@ -25,7 +27,7 @@ async function getCurrentSchema() {
 
         for (const table of tables.rows) {
             const tableName = table.table_name;
-            
+
             // Get columns
             const columns = await pool.query(`
                 SELECT 

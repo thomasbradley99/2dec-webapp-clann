@@ -201,7 +201,7 @@ function Login() {
             <div className="max-w-4xl mx-auto">
               <div className="relative pt-[56.25%]">
                 <ReactPlayer
-                  url="https://youtu.be/3TD7m0i7KDQ"
+                  url="https://youtu.be/2ARfzK1vjZI"
                   width="100%"
                   height="100%"
                   controls
