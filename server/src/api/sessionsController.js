@@ -607,4 +607,49 @@ exports.getSessionStats = async (req, res) => {
         console.error('Failed to fetch session stats:', err);
         res.status(500).json({ error: 'Failed to fetch session stats' });
     }
+};
+
+exports.getAllSessions = async (req, res) => {
+    try {
+        const result = await db.query(`
+            SELECT 
+                s.*,
+                t.name as team_name,
+                t.team_code,
+                u.email as uploaded_by_email,
+                u.id as uploader_id,
+                CASE 
+                    WHEN footage_url LIKE '%veo.co%' THEN 'Veo'
+                    WHEN footage_url LIKE '%youtu%' THEN 'YouTube'
+                    ELSE 'Invalid'
+                END as url_type,
+                EXTRACT(DAY FROM (CURRENT_TIMESTAMP - s.created_at)) as days_waiting
+            FROM Sessions s
+            LEFT JOIN Teams t ON s.team_id = t.id
+            LEFT JOIN Users u ON s.uploaded_by = u.id
+            WHERE footage_url LIKE '%veo.co%' 
+               OR footage_url LIKE '%youtu%'
+            ORDER BY s.created_at DESC
+        `);
+
+        // Add debugging log
+        console.log('Session data:', result.rows.map(row => ({
+            id: row.id,
+            uploaded_by: row.uploaded_by,
+            uploader_id: row.uploader_id,
+            uploaded_by_email: row.uploaded_by_email
+        })));
+
+        const sessionsWithStatus = result.rows.map(session => ({
+            ...session,
+            priority: session.days_waiting > 2 ? 'HIGH' : 'NORMAL',
+            valid_url: isValidSessionUrl(session.footage_url),
+            uploaded_by: session.uploaded_by_username || session.uploaded_by_email || 'Unknown'
+        }));
+
+        res.json(sessionsWithStatus);
+    } catch (err) {
+        console.error('Failed to fetch sessions:', err);
+        res.status(500).json({ error: 'Failed to fetch sessions' });
+    }
 }; 

@@ -101,7 +101,7 @@ function CompanyDashboard() {
                                                     onClick={e => e.stopPropagation()}>
                                                     {session.footage_url}
                                                 </a></p>
-                                                <p>Uploaded by: {session.uploader_email}</p>
+                                                <p>Uploaded by: {session.uploaded_by_email || 'Unknown'}</p>
                                             </div>
                                         </div>
                                     </div>
