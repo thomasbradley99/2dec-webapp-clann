@@ -39,10 +39,9 @@ function StatsOverview() {
 
     return (
         <div className="space-y-6">
-            {/* Company Totals Card */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                 <h3 className="text-xl font-bold mb-4 text-center">CLANN ANALYSIS STATUS</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center mb-6">
+                <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div>
                         <div className="text-gray-400 text-sm">Total Teams</div>
                         <div className="text-2xl font-bold">{stats.teamStats.length}</div>
@@ -55,18 +54,15 @@ function StatsOverview() {
                         <div className="text-gray-400 text-sm">Total Videos</div>
                         <div className="text-2xl font-bold">{stats.totalSessions}</div>
                     </div>
-                    <div>
-                        <div className="text-gray-400 text-sm">Pending Analysis</div>
-                        <div className="text-2xl font-bold text-yellow-500">{stats.pendingSessions}</div>
-                    </div>
-                    <div>
-                        <div className="text-gray-400 text-sm">Completed Analysis</div>
-                        <div className="text-2xl font-bold text-green-500">{stats.completedSessions}</div>
-                    </div>
                 </div>
 
-                {/* Progress Circle */}
-                <div className="flex justify-center mb-6">
+                {/* Progress Circle with Side Numbers */}
+                <div className="flex items-center justify-between mb-6">
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-yellow-500">{stats.pendingSessions}</div>
+                        <div className="text-lg text-gray-400">Pending</div>
+                    </div>
+
                     <div className="relative w-48 h-48">
                         <div className="absolute inset-0 flex items-center justify-center">
                             <span className="text-3xl font-bold">{completionPercentage}%</span>
@@ -94,16 +90,10 @@ function StatsOverview() {
                             />
                         </svg>
                     </div>
-                </div>
 
-                <div className="flex justify-between text-sm">
-                    <div className="text-yellow-500">
-                        <span className="mr-2">🟡</span>
-                        Pending: {stats.pendingSessions}
-                    </div>
-                    <div className="text-green-500">
-                        <span className="mr-2">🟢</span>
-                        Complete: {stats.completedSessions}
+                    <div className="text-center">
+                        <div className="text-3xl font-bold text-green-500">{stats.completedSessions}</div>
+                        <div className="text-lg text-gray-400">Complete</div>
                     </div>
                 </div>
             </div>
