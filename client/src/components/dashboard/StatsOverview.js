@@ -4,10 +4,12 @@ import teamService from '../../services/teamService';
 
 function StatsOverview() {
     const [stats, setStats] = useState({
-        totalSessions: 0,
-        pendingSessions: 0,
-        completedSessions: 0,
-        totalAccounts: 0,
+        total_teams: 0,
+        total_accounts: 0,
+        all_sessions: 0,
+        valid_sessions: 0,
+        pending_valid: 0,
+        completed_valid: 0,
         teamStats: []
     });
     const [loading, setLoading] = useState(true);
@@ -20,10 +22,7 @@ function StatsOverview() {
         try {
             const sessionStats = await sessionService.getSessionStats();
             console.log('Received stats:', sessionStats);
-            setStats({
-                ...sessionStats,
-                teamStats: sessionStats.teamStats || []
-            });
+            setStats(sessionStats);
         } catch (err) {
             console.error('Failed to fetch stats:', err);
         } finally {
@@ -34,85 +33,90 @@ function StatsOverview() {
     if (loading) return <div className="animate-pulse">Loading stats...</div>;
 
     const completionPercentage = Math.round(
-        (stats.completedSessions / (stats.totalSessions || 1)) * 100
+        (stats.completed_valid / (stats.valid_sessions || 1)) * 100
     );
 
     return (
         <div className="space-y-6">
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                 <h3 className="text-xl font-bold mb-4 text-center">CLANN ANALYSIS STATUS</h3>
+
+                {/* Top Stats Grid */}
                 <div className="grid grid-cols-3 gap-4 text-center mb-6">
                     <div>
                         <div className="text-gray-400 text-sm">Total Teams</div>
-                        <div className="text-2xl font-bold">{stats.teamStats.length}</div>
+                        <div className="text-2xl font-bold">{stats.total_teams || 0}</div>
                     </div>
                     <div>
                         <div className="text-gray-400 text-sm">Total Users</div>
-                        <div className="text-2xl font-bold">{stats.totalAccounts}</div>
+                        <div className="text-2xl font-bold">{stats.total_accounts || 0}</div>
                     </div>
                     <div>
                         <div className="text-gray-400 text-sm">Total Videos</div>
-                        <div className="text-2xl font-bold">{stats.totalSessions}</div>
+                        <div className="text-2xl font-bold">{stats.all_sessions || 0}</div>
                     </div>
                 </div>
 
-                {/* Progress Circle with Side Numbers */}
+                {/* Progress Circle and Stats */}
                 <div className="flex items-center justify-between mb-6">
                     <div className="text-center">
-                        <div className="text-3xl font-bold text-yellow-500">{stats.pendingSessions}</div>
-                        <div className="text-lg text-gray-400">Pending</div>
+                        <div className="text-3xl font-bold text-yellow-500">
+                            {stats.pending_valid || 0}
+                        </div>
+                        <div className="text-sm text-gray-400">Pending</div>
                     </div>
 
-                    <div className="relative w-48 h-48">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-3xl font-bold">{completionPercentage}%</span>
-                        </div>
+                    {/* Progress Circle */}
+                    <div className="relative w-32 h-32">
                         <svg className="w-full h-full transform -rotate-90">
                             <circle
                                 className="text-gray-700"
                                 strokeWidth="8"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="70"
-                                cx="96"
-                                cy="96"
+                                r="58"
+                                cx="64"
+                                cy="64"
                             />
                             <circle
                                 className="text-green-500"
                                 strokeWidth="8"
+                                strokeLinecap="round"
                                 stroke="currentColor"
                                 fill="transparent"
-                                r="70"
-                                cx="96"
-                                cy="96"
-                                strokeDasharray={`${2 * Math.PI * 70}`}
-                                strokeDashoffset={`${2 * Math.PI * 70 * (1 - completionPercentage / 100)}`}
+                                r="58"
+                                cx="64"
+                                cy="64"
+                                strokeDasharray={`${2 * Math.PI * 58}`}
+                                strokeDashoffset={`${2 * Math.PI * 58 * (1 - completionPercentage / 100)}`}
                             />
                         </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold">{completionPercentage || 0}%</span>
+                        </div>
                     </div>
 
                     <div className="text-center">
-                        <div className="text-3xl font-bold text-green-500">{stats.completedSessions}</div>
-                        <div className="text-lg text-gray-400">Complete</div>
+                        <div className="text-3xl font-bold text-green-500">
+                            {stats.completed_valid || 0}
+                        </div>
+                        <div className="text-sm text-gray-400">Complete</div>
                     </div>
                 </div>
-            </div>
 
-            {/* Team Submissions Card */}
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-xl font-bold mb-4 text-center">TEAM SUBMISSIONS</h3>
-                <div className="mb-2 grid grid-cols-12 text-sm text-gray-400">
-                    <div className="col-span-6">Team Name</div>
-                    <div className="col-span-2 text-center">Total</div>
-                    <div className="col-span-4 text-right">Pending/Reviewed</div>
-                </div>
-                <div className="space-y-2 max-h-[400px] overflow-y-auto">
-                    {stats.teamStats.map(team => {
-                        const totalSubmissions = (team.pending_count || 0) + (team.reviewed_count || 0);
-                        return (
-                            <div key={team.id} className="grid grid-cols-12 items-center py-2 border-t border-gray-700">
+                {/* Team Submissions */}
+                <div className="mt-8">
+                    <h4 className="text-lg font-semibold mb-4">TEAM SUBMISSIONS</h4>
+                    <div className="grid grid-cols-12 text-sm text-gray-400 mb-2">
+                        <div className="col-span-6">Team Name</div>
+                        <div className="col-span-2 text-center">Total</div>
+                        <div className="col-span-4 text-right">Pending/Complete</div>
+                    </div>
+                    <div className="space-y-1">
+                        {(stats.team_stats || []).map(team => (
+                            <div key={team.id} className="grid grid-cols-12 items-center py-1 border-t border-gray-700">
                                 <div className="col-span-6 text-gray-300">{team.name}</div>
-                                <div className="col-span-2 text-center">{totalSubmissions}</div>
+                                <div className="col-span-2 text-center">{team.total_valid_sessions}</div>
                                 <div className="col-span-4 text-right">
                                     <span className="text-yellow-500">
                                         <span className="mr-1">🟡</span>{team.pending_count || 0}
@@ -123,11 +127,8 @@ function StatsOverview() {
                                     </span>
                                 </div>
                             </div>
-                        );
-                    })}
-                </div>
-                <div className="text-xs text-gray-500 mt-4 text-center">
-                    (Pending / Reviewed)
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>
