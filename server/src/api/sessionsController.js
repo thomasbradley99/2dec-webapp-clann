@@ -574,23 +574,32 @@ exports.getSessionStats = async (req, res) => {
                     COUNT(*) FILTER (WHERE status = 'PENDING') as pending_sessions,
                     COUNT(*) FILTER (WHERE status = 'REVIEWED') as completed_sessions
                 FROM Sessions
+            ),
+            UserCounts AS (
+                SELECT COUNT(*) as total_accounts
+                FROM Users
             )
             SELECT 
                 sc.*,
+                uc.*,
                 json_agg(ts.*) as team_stats
-            FROM SessionCounts sc, TeamStats ts
-            GROUP BY sc.total_sessions, sc.pending_sessions, sc.completed_sessions;
+            FROM SessionCounts sc, UserCounts uc, TeamStats ts
+            GROUP BY 
+                sc.total_sessions, 
+                sc.pending_sessions, 
+                sc.completed_sessions,
+                uc.total_accounts;
         `);
 
-        // Ensure we have data even if no sessions exist
         const response = {
             totalSessions: Number(stats.rows[0]?.total_sessions) || 0,
             pendingSessions: Number(stats.rows[0]?.pending_sessions) || 0,
             completedSessions: Number(stats.rows[0]?.completed_sessions) || 0,
+            totalAccounts: Number(stats.rows[0]?.total_accounts) || 0,
             teamStats: stats.rows[0]?.team_stats || []
         };
 
-        console.log('Sending stats response:', response); // Debug log
+        console.log('Sending stats response:', response);
         res.json(response);
 
     } catch (err) {

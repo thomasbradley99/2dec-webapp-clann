@@ -7,6 +7,7 @@ function StatsOverview() {
         totalSessions: 0,
         pendingSessions: 0,
         completedSessions: 0,
+        totalAccounts: 0,
         teamStats: []
     });
     const [loading, setLoading] = useState(true);
@@ -41,10 +42,14 @@ function StatsOverview() {
             {/* Company Totals Card */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
                 <h3 className="text-xl font-bold mb-4 text-center">CLANN ANALYSIS STATUS</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 text-center mb-6">
                     <div>
                         <div className="text-gray-400 text-sm">Total Teams</div>
                         <div className="text-2xl font-bold">{stats.teamStats.length}</div>
+                    </div>
+                    <div>
+                        <div className="text-gray-400 text-sm">Total Users</div>
+                        <div className="text-2xl font-bold">{stats.totalAccounts}</div>
                     </div>
                     <div>
                         <div className="text-gray-400 text-sm">Total Videos</div>
