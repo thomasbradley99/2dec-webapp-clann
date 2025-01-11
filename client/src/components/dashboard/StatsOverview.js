@@ -18,16 +18,12 @@ function StatsOverview() {
 
     const fetchStats = async () => {
         try {
-            const [sessionStats, teams] = await Promise.all([
-                sessionService.getSessionStats(),
-                teamService.getAllTeams()
-            ]);
+            const sessionStats = await sessionService.getSessionStats();
+            console.log('Received stats:', sessionStats); // Debug log
 
             setStats({
                 ...sessionStats,
-                activeTeams: teams.sort((a, b) =>
-                    (b.session_count || 0) - (a.session_count || 0)
-                ).slice(0, 5) // Top 5 most active teams
+                activeTeams: [] // We'll add team stats later
             });
         } catch (err) {
             console.error('Failed to fetch stats:', err);

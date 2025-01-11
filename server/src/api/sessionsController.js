@@ -569,7 +569,6 @@ exports.getSessionStats = async (req, res) => {
 
         console.log('Stats query result:', stats.rows[0]);  // Debug log
 
-        // Make sure we're sending the exact keys the frontend expects
         res.json({
             totalSessions: Number(stats.rows[0].total_sessions),
             pendingSessions: Number(stats.rows[0].pending_sessions),
