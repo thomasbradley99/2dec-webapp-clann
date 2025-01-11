@@ -14,17 +14,20 @@ const ST_MARYS_TEAM_ID = '2470d524-e6e1-42f4-8d82-15bc8c833ac9';
 
 exports.login = async (req, res) => {
     const { email, password } = req.body;
+    console.log('Login attempt:', { email });
+
     try {
         const result = await db.query("SELECT * FROM Users WHERE email = $1", [email]);
+        console.log('User found:', !!result.rows[0]);
+
         const user = result.rows[0];
         if (user && await bcrypt.compare(password, user.password_hash)) {
-            // Create JWT token
             const token = jwt.sign(
                 { id: user.id, email: user.email, role: user.role },
                 process.env.JWT_SECRET,
                 { expiresIn: '24h' }
             );
-
+            console.log('Login successful for:', email);
             res.json({
                 token,
                 id: user.id,
@@ -32,9 +35,11 @@ exports.login = async (req, res) => {
                 role: user.role
             });
         } else {
+            console.log('Password match failed for:', email);
             res.status(401).json({ error: "Invalid credentials" });
         }
     } catch (err) {
+        console.error('Login error:', err);
         res.status(500).json({ error: err.message });
     }
 };

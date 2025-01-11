@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const { MAX_TEAM_MEMBERS } = require('../constants');
 const { uploadToS3 } = require('../utils/s3');
+const { isValidSessionUrl } = require('../utils/sessionValidation');
 
 exports.createSession = async (req, res) => {
     const { footage_url, team_name } = req.body;
@@ -29,7 +30,7 @@ exports.createSession = async (req, res) => {
 
         // Start transaction
         await db.query('BEGIN');
-        
+
         // Check if team exists for this user
         const existingTeam = await db.query(`
             SELECT t.* 
@@ -53,37 +54,37 @@ exports.createSession = async (req, res) => {
 
             if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
                 await db.query('ROLLBACK');
-                return res.status(400).json({ 
-                    error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members` 
+                return res.status(400).json({
+                    error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members`
                 });
             }
         } else {
             // Create new team
             teamId = uuidv4();
             teamCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            
+
             await db.query(
                 "INSERT INTO Teams (id, name, team_code) VALUES ($1, $2, $3)",
                 [teamId, team_name, teamCode]
             );
-            
+
             // Add user as team admin in TeamMembers table
             await db.query(
                 "INSERT INTO TeamMembers (team_id, user_id, is_admin) VALUES ($1, $2, $3)",
                 [teamId, req.user.id, true]
             );
         }
-        
+
         // Create session
         const sessionId = uuidv4();
         const result = await db.query(
             "INSERT INTO Sessions (id, team_id, footage_url, game_date, status, uploaded_by) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
             [sessionId, teamId, footage_url, new Date(), 'PENDING', req.user.id]
         );
-        
+
         // Commit transaction
         await db.query('COMMIT');
-        
+
         res.json({
             ...result.rows[0],
             team_name,
@@ -102,7 +103,7 @@ exports.getSessions = async (req, res) => {
     try {
         // Add console.log for debugging
         console.log('Fetching sessions for user:', userId);
-        
+
         const result = await db.query(`
             SELECT 
                 s.*,
@@ -116,10 +117,10 @@ exports.getSessions = async (req, res) => {
             WHERE tm.user_id = $1
             ORDER BY s.created_at DESC
         `, [userId]);
-        
+
         // Add console.log for debugging
         console.log('Query result:', result.rows);
-        
+
         res.json(result.rows);
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
@@ -134,10 +135,10 @@ exports.deleteSession = async (req, res) => {
 
         // Get the team ID associated with the session
         const sessionResult = await db.query(
-            "SELECT team_id FROM Sessions WHERE id = $1", 
+            "SELECT team_id FROM Sessions WHERE id = $1",
             [id]
         );
-        
+
         if (sessionResult.rows.length === 0) {
             await db.query('ROLLBACK');
             return res.status(404).json({ error: 'Session not found' });
@@ -161,20 +162,34 @@ exports.deleteSession = async (req, res) => {
 // Add this new function to get all sessions for company users
 exports.getAllSessions = async (req, res) => {
     try {
-        // Get all sessions with team and user info
         const result = await db.query(`
             SELECT 
                 s.*,
                 t.name as team_name,
                 t.team_code,
-                u.email as uploaded_by_email
+                u.email as uploaded_by_email,
+                CASE 
+                    WHEN footage_url LIKE '%veo.co%' THEN 'Veo'
+                    WHEN footage_url LIKE '%youtu%' THEN 'YouTube'
+                    ELSE 'Invalid'
+                END as url_type,
+                EXTRACT(DAY FROM (CURRENT_TIMESTAMP - s.created_at)) as days_waiting
             FROM Sessions s
             LEFT JOIN Teams t ON s.team_id = t.id
             LEFT JOIN Users u ON s.uploaded_by = u.id
+            WHERE footage_url LIKE '%veo.co%' 
+               OR footage_url LIKE '%youtu%'
             ORDER BY s.created_at DESC
         `);
 
-        res.json(result.rows);
+        // Add status flags for frontend
+        const sessionsWithStatus = result.rows.map(session => ({
+            ...session,
+            priority: session.days_waiting > 2 ? 'HIGH' : 'NORMAL',
+            valid_url: isValidSessionUrl(session.footage_url)
+        }));
+
+        res.json(sessionsWithStatus);
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
         res.status(500).json({ error: 'Failed to fetch sessions' });
@@ -199,10 +214,10 @@ exports.addAnalysis = async (req, res) => {
         // Upload to S3 instead of local storage
         const imageUrl = await uploadToS3(req.file);
         console.log('Processing upload:', { sessionId, type, imageUrl });
-        
+
         // Update the appropriate column based on analysis type
         let updateQuery;
-        switch(type.toUpperCase()) {
+        switch (type.toUpperCase()) {
             case 'HEATMAP':
                 updateQuery = `
                     UPDATE Sessions 
@@ -321,9 +336,9 @@ exports.deleteAnalysis = async (req, res) => {
         }
 
         const { sessionId, type } = req.params;
-        
+
         let updateColumn;
-        switch(type.toUpperCase()) {
+        switch (type.toUpperCase()) {
             case 'HEATMAP': updateColumn = 'analysis_image1_url'; break;
             case 'SPRINT_MAP': updateColumn = 'analysis_image2_url'; break;
             case 'GAME_MOMENTUM': updateColumn = 'analysis_image3_url'; break;
@@ -344,7 +359,7 @@ exports.deleteAnalysis = async (req, res) => {
         `;
 
         const result = await db.query(query, [sessionId]);
-        
+
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Session not found' });
         }
@@ -359,7 +374,7 @@ exports.deleteAnalysis = async (req, res) => {
 exports.addDescription = async (req, res) => {
     try {
         console.log('Starting description add...');
-        
+
         if (req.user.role !== 'COMPANY_MEMBER') {
             return res.status(403).json({ error: 'Not authorized' });
         }
@@ -410,9 +425,9 @@ exports.addDescription = async (req, res) => {
         res.json(result.rows[0]);
     } catch (error) {
         console.error('Error in addDescription:', error);
-        res.status(500).json({ 
+        res.status(500).json({
             error: 'Failed to add description',
-            details: error.message 
+            details: error.message
         });
     }
 };
@@ -484,7 +499,7 @@ exports.getUserSessions = async (req, res) => {
 exports.getSessionDetails = async (req, res) => {
     try {
         const { sessionId } = req.params;
-        
+
         const result = await db.query(`
             SELECT 
                 s.*,
@@ -531,5 +546,42 @@ exports.updateTeamMetrics = async (req, res) => {
     } catch (error) {
         console.error('Error updating team metrics:', error);
         res.status(500).json({ error: 'Failed to update team metrics' });
+    }
+};
+
+exports.getSessionStats = async (req, res) => {
+    try {
+        const stats = await db.query(`
+            WITH ValidSessions AS (
+                SELECT *
+                FROM Sessions
+                WHERE footage_url LIKE '%veo.co%' 
+                   OR footage_url LIKE '%youtu%'
+            )
+            SELECT 
+                COUNT(*) as total_sessions,
+                COUNT(*) FILTER (WHERE status = 'PENDING') as pending_sessions,
+                COUNT(*) FILTER (WHERE status = 'REVIEWED' 
+                    AND updated_at::date = CURRENT_DATE) as completed_today,
+                COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as new_today
+            FROM ValidSessions;
+        `);
+
+        console.log('Stats query result:', stats.rows[0]);  // Debug log
+
+        // Make sure we're sending the exact keys the frontend expects
+        res.json({
+            totalSessions: Number(stats.rows[0].total_sessions),
+            pendingSessions: Number(stats.rows[0].pending_sessions),
+            completedToday: Number(stats.rows[0].completed_today),
+            newToday: Number(stats.rows[0].new_today)
+        });
+
+    } catch (err) {
+        console.error('Failed to fetch session stats:', err);
+        res.status(500).json({
+            error: 'Failed to fetch session stats',
+            details: err.message
+        });
     }
 }; 

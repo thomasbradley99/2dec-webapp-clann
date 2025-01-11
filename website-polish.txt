@@ -1,0 +1,51 @@
+CLANN - Website Polish Plan
+
+1. SIGN IN / AUTH
+- Fix login reliability issues
+- Clearer error messages
+- "Remember me" option
+- Better feedback on successful login
+
+2. LANDING PAGE CLARITY
+- Simpler main message: "Want your team distances tracked? Upload your URL to us."
+- Show price (£75) prominently
+- Add demo/sample analysis on front page
+- Clear call-to-action buttons
+
+3. GAME UPLOAD FLOW
+- Clearer instructions for URL upload
+- Better validation for video URLs
+- Progress indicators
+- Success confirmations
+- Team code sharing made more obvious
+
+4. ANALYSIS DISPLAY
+- Cleaner layout for analysis results
+- Better organization of:
+  • Heatmaps
+  • Sprint maps
+  • Game momentum graphs
+- More intuitive metrics display
+- Mobile-friendly viewing
+
+5. UI IMPROVEMENTS
+- Consistent styling throughout
+- Better loading states
+- Clearer navigation
+- More intuitive team management
+- Mobile responsiveness fixes
+
+6. COMPANY DASHBOARD
+- Cleaner session list view
+- Better filtering options
+- More intuitive analysis upload
+- Clearer status indicators
+
+PRIORITY ORDER:
+1. Fix sign-in issues
+2. Polish landing page
+3. Improve game upload flow
+4. Clean up analysis display
+5. General UI improvements
+6. Company dashboard polish
+

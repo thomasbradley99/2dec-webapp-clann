@@ -116,6 +116,17 @@ const sessionService = {
             throw new Error(error.response?.data?.error || 'Failed to update metrics');
         }
     },
+
+    getSessionStats: async () => {
+        try {
+            const response = await api.get('/sessions/stats');
+            console.log('Stats response:', response.data);
+            return response.data;
+        } catch (error) {
+            console.error('Stats error:', error);
+            throw new Error(error.response?.data?.error || 'Failed to fetch session stats');
+        }
+    },
 };
 
 export default sessionService; 

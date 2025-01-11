@@ -22,17 +22,21 @@ const upload = multer({
     fileFilter: fileFilter
 });
 
-// Then define routes
+// First, define specific routes (EXACT MATCHES FIRST)
 router.post("/create", auth, sessionsController.createSession);
 router.get("/", auth, sessionsController.getSessions);
-router.delete("/:id", auth, sessionsController.deleteSession);
 router.get('/all', auth, sessionsController.getAllSessions);
+router.get('/stats', auth, sessionsController.getSessionStats);
 router.post('/analysis', auth, upload.single('file'), sessionsController.addAnalysis);
+
+// Then, define parameterized routes (WILDCARDS LAST)
+router.get("/:sessionId", auth, sessionsController.getSessionDetails);
+router.delete("/:id", auth, sessionsController.deleteSession);
 router.put('/:sessionId/toggle-status', auth, sessionsController.toggleSessionStatus);
 router.delete('/analysis/:sessionId/:type', auth, sessionsController.deleteAnalysis);
 router.post('/:sessionId/description', auth, sessionsController.addDescription);
 router.put('/:sessionId/description', auth, sessionsController.updateAnalysisDescription);
-router.get("/:sessionId", auth, sessionsController.getSessionDetails);
 router.put('/:sessionId/metrics', auth, sessionsController.updateTeamMetrics);
 
-module.exports = router; 
+module.exports = router;
+

@@ -1,0 +1,58 @@
+CLANN - Company Dashboard Improvements
+
+1. TOP STATS BAR
+- Total Sessions: 23
+- Pending Analysis: 12
+- Completed Today: 5
+- Active Teams: 8
+- New Today: 3
+
+2. SESSION STATUS BREAKDOWN
+- Pending Sessions
+  • Oldest First
+  • Days Waiting
+  • Team Name
+  • URL Source (Veo/YouTube)
+
+- Completed Sessions
+  • Date Completed
+  • Turnaround Time
+  • Analyst Name
+  • Analysis Types Added
+
+3. TEAM ACTIVITY
+- Most Active Teams
+- Recent Uploads
+- Teams Awaiting First Analysis
+- Premium vs Free Teams
+
+4. ANALYSIS METRICS
+- Average Response Time
+- Analysis Types Distribution
+  • Heatmaps Added
+  • Sprint Maps Added
+  • Game Momentum Added
+- Common URL Sources
+
+5. VISUAL IMPROVEMENTS
+- Status color coding:
+  • Red: Pending > 48h
+  • Yellow: Pending < 48h
+  • Green: Completed
+- Progress bars for analysis completion
+- Clear priority indicators
+- Better session card layout
+
+6. FILTERING & SORTING
+- By Date Range
+- By Team
+- By Status
+- By Analysis Type
+- By Priority
+
+IMPLEMENTATION PRIORITY:
+1. Top Stats Bar
+2. Better Session Status Display
+3. Clear Priority System
+4. Visual Status Indicators
+5. Advanced Metrics

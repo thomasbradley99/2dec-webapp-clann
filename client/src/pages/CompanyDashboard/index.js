@@ -4,6 +4,7 @@ import SessionCard from './SessionCard';
 import NavBar from '../../components/ui/NavBar';
 import sessionService from '../../services/sessionService';
 import Header from '../../components/ui/Header';
+import StatsOverview from '../../components/dashboard/StatsOverview';
 
 function CompanyDashboard() {
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ function CompanyDashboard() {
     const filteredSessions = sessions
         .filter(session => filter === 'ALL' ? true : session.status === filter)
         .sort((a, b) => {
-            switch(sortBy) {
+            switch (sortBy) {
                 case 'team':
                     return a.team_name.localeCompare(b.team_name);
                 case 'status':
@@ -53,10 +54,11 @@ function CompanyDashboard() {
         <div className="min-h-screen bg-gray-900 text-white pb-20">
             <Header />
             <div className="max-w-7xl mx-auto p-4 md:p-8">
+                <StatsOverview />
                 <div className="flex justify-between items-center mb-6">
                     <h2 className="text-2xl">Company Dashboard</h2>
                     <div className="flex gap-4">
-                        <select 
+                        <select
                             value={filter}
                             onChange={(e) => setFilter(e.target.value)}
                             className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
@@ -65,7 +67,7 @@ function CompanyDashboard() {
                             <option value="PENDING">Pending</option>
                             <option value="REVIEWED">Reviewed</option>
                         </select>
-                        <select 
+                        <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
                             className="bg-gray-800 text-white border border-gray-700 rounded px-3 py-1"
@@ -78,7 +80,7 @@ function CompanyDashboard() {
                 </div>
                 <div className="grid gap-4">
                     {filteredSessions.map(session => (
-                        <SessionCard 
+                        <SessionCard
                             key={session.id}
                             session={session}
                             onUpdate={fetchSessions}
