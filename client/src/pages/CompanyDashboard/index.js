@@ -73,7 +73,7 @@ function CompanyDashboard() {
                         </div>
                         <button
                             onClick={() => setSortOrder(current => current === 'oldest' ? 'newest' : 'oldest')}
-                            className="flex items-center gap-2 px-4 py-2 bg-gray-800 rounded hover:bg-gray-700"
+                            className="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600 transition-colors"
                         >
                             {sortOrder === 'oldest' ? '⬆️ Oldest First' : '⬇️ Newest First'}
                         </button>
