@@ -552,35 +552,49 @@ exports.updateTeamMetrics = async (req, res) => {
 exports.getSessionStats = async (req, res) => {
     try {
         const stats = await db.query(`
-            WITH ValidSessions AS (
-                SELECT *
+            WITH AllTeams AS (
+                SELECT id, name 
+                FROM Teams 
+                ORDER BY name ASC
+            ),
+            TeamStats AS (
+                SELECT 
+                    t.id,
+                    t.name,
+                    COUNT(s.id) FILTER (WHERE s.status = 'PENDING') as pending_count,
+                    COUNT(s.id) FILTER (WHERE s.status = 'REVIEWED') as reviewed_count
+                FROM AllTeams t
+                LEFT JOIN Sessions s ON t.id = s.team_id
+                GROUP BY t.id, t.name
+                ORDER BY t.name ASC
+            ),
+            SessionCounts AS (
+                SELECT 
+                    COUNT(*) as total_sessions,
+                    COUNT(*) FILTER (WHERE status = 'PENDING') as pending_sessions,
+                    COUNT(*) FILTER (WHERE status = 'REVIEWED') as completed_sessions
                 FROM Sessions
-                WHERE footage_url LIKE '%veo.co%' 
-                   OR footage_url LIKE '%youtu%'
             )
             SELECT 
-                COUNT(*) as total_sessions,
-                COUNT(*) FILTER (WHERE status = 'PENDING') as pending_sessions,
-                COUNT(*) FILTER (WHERE status = 'REVIEWED' 
-                    AND updated_at::date = CURRENT_DATE) as completed_today,
-                COUNT(*) FILTER (WHERE created_at::date = CURRENT_DATE) as new_today
-            FROM ValidSessions;
+                sc.*,
+                json_agg(ts.*) as team_stats
+            FROM SessionCounts sc, TeamStats ts
+            GROUP BY sc.total_sessions, sc.pending_sessions, sc.completed_sessions;
         `);
 
-        console.log('Stats query result:', stats.rows[0]);  // Debug log
+        // Ensure we have data even if no sessions exist
+        const response = {
+            totalSessions: Number(stats.rows[0]?.total_sessions) || 0,
+            pendingSessions: Number(stats.rows[0]?.pending_sessions) || 0,
+            completedSessions: Number(stats.rows[0]?.completed_sessions) || 0,
+            teamStats: stats.rows[0]?.team_stats || []
+        };
 
-        res.json({
-            totalSessions: Number(stats.rows[0].total_sessions),
-            pendingSessions: Number(stats.rows[0].pending_sessions),
-            completedToday: Number(stats.rows[0].completed_today),
-            newToday: Number(stats.rows[0].new_today)
-        });
+        console.log('Sending stats response:', response); // Debug log
+        res.json(response);
 
     } catch (err) {
         console.error('Failed to fetch session stats:', err);
-        res.status(500).json({
-            error: 'Failed to fetch session stats',
-            details: err.message
-        });
+        res.status(500).json({ error: 'Failed to fetch session stats' });
     }
 }; 

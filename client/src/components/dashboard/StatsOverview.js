@@ -6,9 +6,8 @@ function StatsOverview() {
     const [stats, setStats] = useState({
         totalSessions: 0,
         pendingSessions: 0,
-        completedToday: 0,
-        activeTeams: [],
-        newToday: 0
+        completedSessions: 0,
+        teamStats: []
     });
     const [loading, setLoading] = useState(true);
 
@@ -19,14 +18,17 @@ function StatsOverview() {
     const fetchStats = async () => {
         try {
             const sessionStats = await sessionService.getSessionStats();
-            console.log('Received stats:', sessionStats); // Debug log
-
+            console.log('Received stats:', sessionStats);
             setStats({
                 ...sessionStats,
-                activeTeams: [] // We'll add team stats later
+                teamStats: sessionStats.teamStats || []
             });
         } catch (err) {
             console.error('Failed to fetch stats:', err);
+            setStats(prev => ({
+                ...prev,
+                teamStats: []
+            }));
         } finally {
             setLoading(false);
         }
@@ -34,88 +36,63 @@ function StatsOverview() {
 
     if (loading) return <div className="animate-pulse">Loading stats...</div>;
 
+    const completionPercentage = Math.round(
+        (stats.completedSessions / (stats.totalSessions || 1)) * 100
+    );
+
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {/* Overview Stats with FIFA-style circles */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            {/* Analysis Status Circle */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-xl font-bold mb-6">Overview</h3>
-                <div className="space-y-6">
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Total Sessions</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold">{stats.totalSessions}</span>
-                            <div className="w-8 h-8 rounded-full border-4 border-white/20 flex items-center justify-center">
-                                <span className="text-white font-bold">{stats.totalSessions}</span>
-                            </div>
-                        </div>
+                <h3 className="text-xl font-bold mb-6 text-center">Analysis Status</h3>
+                <div className="relative w-48 h-48 mx-auto mb-6">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-3xl font-bold">{completionPercentage}%</span>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Pending Analysis</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-yellow-500">{stats.pendingSessions}</span>
-                            <div className="w-8 h-8 rounded-full border-4 border-yellow-500/80 flex items-center justify-center">
-                                <span className="text-yellow-500 font-bold">{stats.pendingSessions}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Completed Today</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-green-500">{stats.completedToday}</span>
-                            <div className="w-8 h-8 rounded-full border-4 border-green-500/80 flex items-center justify-center">
-                                <span className="text-green-500 font-bold">{stats.completedToday}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                        <span className="text-gray-400">New Today</span>
-                        <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-blue-500">{stats.newToday}</span>
-                            <div className="w-8 h-8 rounded-full border-4 border-blue-500/80 flex items-center justify-center">
-                                <span className="text-blue-500 font-bold">{stats.newToday}</span>
-                            </div>
-                        </div>
-                    </div>
+                    <svg className="w-full h-full transform -rotate-90">
+                        <circle
+                            className="text-gray-700"
+                            strokeWidth="8"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="70"
+                            cx="96"
+                            cy="96"
+                        />
+                        <circle
+                            className="text-green-500"
+                            strokeWidth="8"
+                            stroke="currentColor"
+                            fill="transparent"
+                            r="70"
+                            cx="96"
+                            cy="96"
+                            strokeDasharray={`${2 * Math.PI * 70}`}
+                            strokeDashoffset={`${2 * Math.PI * 70 * (1 - completionPercentage / 100)}`}
+                        />
+                    </svg>
+                </div>
+                <div className="flex justify-between text-sm">
+                    <div className="text-yellow-500">Pending: {stats.pendingSessions}</div>
+                    <div className="text-green-500">Complete: {stats.completedSessions}</div>
                 </div>
             </div>
 
-            {/* Active Teams */}
+            {/* Team Activity */}
             <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-xl font-bold mb-4">Most Active Teams</h3>
-                <div className="space-y-3">
-                    {stats.activeTeams.map(team => (
-                        <div key={team.id} className="flex justify-between items-center">
-                            <span className="text-gray-400">{team.name}</span>
-                            <span className="font-bold">{team.session_count || 0} sessions</span>
+                <h3 className="text-xl font-bold mb-4">Team Activity</h3>
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                    {Array.isArray(stats.teamStats) && stats.teamStats.map(team => (
+                        <div key={team.id} className="flex justify-between items-center py-2">
+                            <span className="text-gray-300">{team.name}</span>
+                            <span className="text-gray-400">
+                                {team.pending_count || 0} / {team.reviewed_count || 0}
+                            </span>
                         </div>
                     ))}
                 </div>
-            </div>
-
-            {/* Status Distribution */}
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700">
-                <h3 className="text-xl font-bold mb-4">Analysis Status</h3>
-                <div className="relative pt-1">
-                    <div className="flex mb-2 items-center justify-between">
-                        <div>
-                            <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-green-500 bg-green-500/20">
-                                Complete
-                            </span>
-                        </div>
-                        <div className="text-right">
-                            <span className="text-xs font-semibold inline-block text-green-500">
-                                {Math.round((stats.totalSessions - stats.pendingSessions) / stats.totalSessions * 100)}%
-                            </span>
-                        </div>
-                    </div>
-                    <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-700">
-                        <div style={{ width: `${(stats.totalSessions - stats.pendingSessions) / stats.totalSessions * 100}%` }}
-                            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-500">
-                        </div>
-                    </div>
+                <div className="text-xs text-gray-500 mt-4 text-center">
+                    (Pending / Reviewed)
                 </div>
             </div>
         </div>
