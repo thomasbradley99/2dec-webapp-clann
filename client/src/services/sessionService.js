@@ -127,6 +127,17 @@ const sessionService = {
             throw new Error(error.response?.data?.error || 'Failed to fetch session stats');
         }
     },
+
+    updateSessionTitle: async (sessionId, newTitle) => {
+        try {
+            const response = await api.put(`/sessions/${sessionId}/title`, {
+                team_name: newTitle
+            });
+            return response.data;
+        } catch (error) {
+            throw new Error(error.response?.data?.error || 'Failed to update session title');
+        }
+    },
 };
 
 export default sessionService; 
