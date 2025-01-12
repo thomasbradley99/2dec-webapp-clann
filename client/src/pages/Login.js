@@ -211,7 +211,7 @@ function Login() {
               </div>
             </div>
 
-            {/* Features Grid */}
+            {/* Analysis Showcase */}
             <div className="max-w-7xl mx-auto px-4 pt-8 sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
@@ -234,14 +234,13 @@ function Login() {
                     icon: '⚡️'
                   }
                 ].map(feature => (
-                  <div key={feature.title} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
-                                            hover:border-green-500/30 transition-all transform hover:-translate-y-1">
+                  <div key={feature.title} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-all transform hover:-translate-y-1">
                     <img
                       src={feature.image}
                       alt={feature.title}
-                      className="w-full h-auto object-contain rounded-lg bg-black/30"
+                      className="w-full h-auto object-contain rounded-lg bg-black/30 mb-6"
                     />
-                    <div className="flex items-center gap-3 mb-4 mt-4">
+                    <div className="flex items-center gap-3 mb-4">
                       <span className="text-2xl">{feature.icon}</span>
                       <h3 className="text-xl font-bold text-white">{feature.title}</h3>
                     </div>
@@ -251,18 +250,30 @@ function Login() {
               </div>
             </div>
 
-            {/* Pricing/CTA Section */}
-            <div className="max-w-3xl mx-auto px-4 pt-24 pb-24 text-center">
-              <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
+            {/* Current Offer Section */}
+            <div className="max-w-3xl mx-auto px-4 pt-24 pb-24">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {/* Free Trial */}
-                <div className="mb-8">
-                  <div className="text-3xl font-bold text-green-400 mb-2">
-                    Free Trial
+                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-green-500/30 transition-all">
+                  <div className="inline-block bg-green-500/10 text-green-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                    STEP 1
                   </div>
-                  <ul className="text-gray-300 space-y-2 mb-4">
-                    <li>✓ First Game Analysis</li>
-                    <li>✓ Create Team</li>
-                    <li>✓ Full Feature Access</li>
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    Start Your Free Trial
+                  </h2>
+                  <ul className="text-gray-300 space-y-4 mb-8">
+                    <li className="flex items-center gap-3">
+                      <span className="text-green-400 text-xl">✓</span>
+                      First Game Analysis
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span className="text-green-400 text-xl">✓</span>
+                      Create Team
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <span className="text-green-400 text-xl">✓</span>
+                      Full Feature Access
+                    </li>
                   </ul>
                   <button
                     onClick={() => {
@@ -271,86 +282,63 @@ function Login() {
                       if (registerForm) {
                         registerForm.scrollIntoView({ behavior: 'smooth' });
                         const emailInput = registerForm.querySelector('input[type="email"]');
-                        if (emailInput) {
-                          emailInput.focus();
-                        }
+                        if (emailInput) emailInput.focus();
                       }
                     }}
-                    className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-xl font-medium rounded-lg transition-colors"
+                    className="w-full px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-medium rounded-lg transition-colors"
                   >
                     Start Free Trial
                   </button>
                 </div>
 
-                {/* Divider */}
-                <div className="border-t border-gray-700 my-8" />
-
                 {/* Premium */}
-                <div>
-                  <div className="text-3xl font-bold text-blue-400 mb-2">
+                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-blue-500/30 transition-all">
+                  <div className="inline-block bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                    STEP 2
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    Continue with Premium
+                  </h2>
+                  <div className="text-3xl font-bold text-blue-400 mb-4">
                     £75/month
                   </div>
-                  <ul className="text-gray-300 space-y-2 mb-4">
-                    <li>✓ Unlimited Games</li>
-                    <li>✓ Priority Analysis</li>
-                    <li>✓ Multiple Teams</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-
-            {/* Demo video section temporarily disabled */}
-            {/*
-            <div className="max-w-5xl mx-auto px-4 pb-24">
-              <div className="bg-gray-800/50 rounded-xl overflow-hidden">
-                <div className="p-8 text-center">
-                  <div className="flex items-center justify-center gap-3 mb-4">
-                    <span className="text-3xl">🚀</span>
-                    <h2 className="text-3xl font-bold text-white">AI Sprint Analysis Demo</h2>
-                    <span className="text-3xl">🚀</span>
+                  <div className="text-gray-300 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <span className="text-blue-400 text-xl">✓</span>
+                      Unlimited Games
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-blue-400 text-xl">✓</span>
+                      Priority Analysis
+                    </div>
                   </div>
-                  <p className="text-gray-400 max-w-2xl mx-auto">
-                    Watch AI automatically identify and track player movements, measuring top speeds,
-                    sprint distances, and acceleration patterns in real-time
-                  </p>
                 </div>
 
-                <div className="w-full bg-black">
-                  <div className="max-w-4xl mx-auto">
-                    <div className="relative pt-[56.25%]">
-                      <ReactPlayer
-                        url="https://youtu.be/2ARfzK1vjZI"
-                        width="100%"
-                        height="100%"
-                        controls
-                        playing={false}
-                        muted={true}
-                        playsinline
-                        light={true}
-                        style={{
-                          position: 'absolute',
-                          top: 0,
-                          left: 0
-                        }}
-                        config={{
-                          youtube: {
-                            playerVars: {
-                              modestbranding: 1,
-                              rel: 0,
-                              showinfo: 0,
-                              color: 'white',
-                              iv_load_policy: 3,
-                              origin: window.location.origin
-                            }
-                          }
-                        }}
-                      />
+                {/* Coming Soon */}
+                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
+                  <div className="inline-block bg-purple-500/10 text-purple-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
+                    COMING SOON
+                  </div>
+                  <h2 className="text-2xl font-bold text-white mb-6">
+                    Future Features
+                  </h2>
+                  <div className="space-y-6">
+                    <div className="text-gray-400">
+                      <span className="text-2xl block mb-2">🎯</span>
+                      Individual Player Tracking
+                    </div>
+                    <div className="text-gray-400">
+                      <span className="text-2xl block mb-2">⚽️</span>
+                      Ball Possession Analysis
+                    </div>
+                    <div className="text-gray-400">
+                      <span className="text-2xl block mb-2">📊</span>
+                      Performance Insights
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            */}
           </div>
         </div>
       </div>
