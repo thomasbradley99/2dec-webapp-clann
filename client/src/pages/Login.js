@@ -251,10 +251,10 @@ function Login() {
             </div>
 
             {/* Current Offer Section */}
-            <div className="max-w-3xl mx-auto px-4 pt-24 pb-24">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="max-w-4xl mx-auto px-4 pt-24 pb-24">
+              <div className="grid grid-cols-1 md:grid-cols-7 gap-8">
                 {/* Free Trial */}
-                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-green-500/30 transition-all">
+                <div className="md:col-span-2 bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-green-500/30 transition-all">
                   <div className="inline-block bg-green-500/10 text-green-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                     STEP 1
                   </div>
@@ -292,14 +292,14 @@ function Login() {
                 </div>
 
                 {/* Premium */}
-                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-blue-500/30 transition-all">
+                <div className="md:col-span-3 bg-gray-800/50 rounded-xl p-8 border border-gray-700/50 hover:border-blue-500/30 transition-all">
                   <div className="inline-block bg-blue-500/10 text-blue-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                     STEP 2
                   </div>
-                  <h2 className="text-2xl font-bold text-white mb-6">
+                  <h2 className="text-3xl font-bold text-white mb-6">
                     Continue with Premium
                   </h2>
-                  <div className="text-3xl font-bold text-blue-400 mb-4">
+                  <div className="text-4xl font-bold text-blue-400 mb-6">
                     £75/month
                   </div>
                   <div className="text-gray-300 space-y-4">
@@ -315,7 +315,7 @@ function Login() {
                 </div>
 
                 {/* Coming Soon */}
-                <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
+                <div className="md:col-span-2 bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
                   <div className="inline-block bg-purple-500/10 text-purple-400 px-4 py-1 rounded-full text-sm font-medium mb-4">
                     COMING SOON
                   </div>
