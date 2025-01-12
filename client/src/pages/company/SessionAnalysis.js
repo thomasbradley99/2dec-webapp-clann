@@ -10,6 +10,8 @@ function SessionAnalysis() {
     const [uploading, setUploading] = useState({});
     const [isEditingTitle, setIsEditingTitle] = useState(false);
     const [newTitle, setNewTitle] = useState('');
+    const [showTeamMembers, setShowTeamMembers] = useState(false);
+    const [teamMembers, setTeamMembers] = useState([]);
 
     useEffect(() => {
         fetchSession();
@@ -62,12 +64,25 @@ function SessionAnalysis() {
     };
 
     const handleTitleUpdate = async () => {
+        if (!newTitle.trim()) {
+            return; // Don't update if empty
+        }
+
         try {
-            await sessionService.updateSessionTitle(session.id, newTitle);
+            await sessionService.updateSessionTitle(session.id, newTitle.trim());
             setIsEditingTitle(false);
-            fetchSession();
+            await fetchSession(); // Refresh the session data
         } catch (err) {
             console.error('Failed to update title:', err);
+        }
+    };
+
+    const handleTitleKeyDown = (e) => {
+        if (e.key === 'Enter') {
+            handleTitleUpdate();
+        } else if (e.key === 'Escape') {
+            setIsEditingTitle(false);
+            setNewTitle(session.team_name); // Reset to current title
         }
     };
 
@@ -79,6 +94,45 @@ function SessionAnalysis() {
             console.error('Failed to update status:', err);
         }
     };
+
+    const fetchTeamMembers = async (teamId) => {
+        try {
+            const response = await fetch(`/api/teams/${teamId}/members`);
+            const data = await response.json();
+            setTeamMembers(data);
+            setShowTeamMembers(true);
+        } catch (err) {
+            console.error('Error fetching team members:', err);
+        }
+    };
+
+    const TeamMembersModal = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+            <div className="bg-gray-800 p-6 rounded-lg max-w-lg w-full">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-white">Team Members</h3>
+                    <button
+                        onClick={() => setShowTeamMembers(false)}
+                        className="text-gray-400 hover:text-white"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div className="space-y-2">
+                    {teamMembers.map((member, i) => (
+                        <div key={i} className="flex justify-between items-center p-2 bg-gray-700 rounded">
+                            <span className="text-white">{member.email}</span>
+                            {member.is_admin && (
+                                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                    Admin
+                                </span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 
     if (!session) return <div>Loading...</div>;
 
@@ -100,25 +154,34 @@ function SessionAnalysis() {
                             type="text"
                             value={newTitle}
                             onChange={(e) => setNewTitle(e.target.value)}
+                            onKeyDown={handleTitleKeyDown}
                             className="bg-gray-900 text-white px-3 py-2 rounded"
                             autoFocus
                         />
                         <button
                             onClick={handleTitleUpdate}
-                            className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded"
+                            className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded hover:bg-blue-500/30"
                         >
                             Save
                         </button>
                         <button
-                            onClick={() => setIsEditingTitle(false)}
-                            className="text-gray-400 px-4 py-2 rounded"
+                            onClick={() => {
+                                setIsEditingTitle(false);
+                                setNewTitle(session.team_name);
+                            }}
+                            className="text-gray-400 px-4 py-2 rounded hover:text-gray-300"
                         >
                             Cancel
                         </button>
                     </div>
                 ) : (
                     <div className="flex justify-between items-center">
-                        <h2 className="text-2xl font-bold text-white">{session?.team_name}</h2>
+                        <h2
+                            className="text-2xl font-bold text-white cursor-pointer hover:text-gray-300"
+                            onClick={() => fetchTeamMembers(session.team_id)}
+                        >
+                            {session?.team_name}
+                        </h2>
                         <button
                             onClick={() => setIsEditingTitle(true)}
                             className="text-blue-400 hover:text-blue-300"
@@ -223,6 +286,7 @@ function SessionAnalysis() {
 
                 <TeamMetricsForm session={session} onUpdate={fetchSession} />
             </div>
+            {showTeamMembers && <TeamMembersModal />}
         </div>
     );
 }

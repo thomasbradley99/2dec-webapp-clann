@@ -24,8 +24,8 @@ const teamService = {
 
     joinTeam: async (teamCode) => {
         try {
-            const response = await api.post('/teams/join', { 
-                team_code: teamCode.trim().toUpperCase() 
+            const response = await api.post('/teams/join', {
+                team_code: teamCode.trim().toUpperCase()
             });
             return response.data;
         } catch (error) {
@@ -33,12 +33,13 @@ const teamService = {
         }
     },
 
-    async getTeamMembers(teamId) {
+    getTeamMembers: async (teamId) => {
         try {
             const response = await api.get(`/teams/${teamId}/members`);
             return response.data;
         } catch (error) {
-            throw new Error(error.response?.data?.error || 'Failed to fetch team members');
+            console.error('Team service error:', error);
+            throw error;
         }
     },
 

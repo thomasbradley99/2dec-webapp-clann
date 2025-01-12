@@ -2,11 +2,11 @@
   "name": "db-tools",
   "private": true,
   "scripts": {
-    "definition": "node scripts/printDbDefinition.js",
-    "content": "node scripts/printDbContent.js",
-    "add-metrics": "node scripts/addTeamMetrics.js",
-    "details": "node scripts/printDetailedContent.js",
-    "get-schema": "node scripts/getCurrentSchema.js"
+    "definition": "node docs/db/scripts/printDbDefinition.js",
+    "content": "node docs/db/scripts/printDbContent.js",
+    "add-metrics": "node docs/db/scripts/addTeamMetrics.js",
+    "details": "node docs/db/scripts/printDetailedContent.js",
+    "get-schema": "node docs/db/scripts/getCurrentSchema.js"
   },
   "dependencies": {
     "pg": "^8.13.1",

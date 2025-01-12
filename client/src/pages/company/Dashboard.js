@@ -13,6 +13,9 @@ function CompanyDashboard() {
     const [error, setError] = useState(null);
     const [view, setView] = useState('PENDING');
     const [sortOrder, setSortOrder] = useState('oldest');
+    const [showTeamMembers, setShowTeamMembers] = useState(false);
+    const [selectedTeam, setSelectedTeam] = useState(null);
+    const [teamMembers, setTeamMembers] = useState([]);
 
     const organizedSessions = {
         pending: sessions.filter(s => s.status === 'PENDING')
@@ -44,6 +47,46 @@ function CompanyDashboard() {
             setLoading(false);
         }
     };
+
+    const fetchTeamMembers = async (teamId, teamName) => {
+        try {
+            const response = await fetch(`/api/teams/${teamId}/members`);
+            const data = await response.json();
+            setTeamMembers(data);
+            setSelectedTeam(teamName);
+            setShowTeamMembers(true);
+        } catch (err) {
+            console.error('Error fetching team members:', err);
+        }
+    };
+
+    const TeamMembersModal = () => (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-gray-800 p-6 rounded-lg max-w-lg w-full">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-bold text-white">{selectedTeam} - Team Members</h3>
+                    <button
+                        onClick={() => setShowTeamMembers(false)}
+                        className="text-gray-400 hover:text-white"
+                    >
+                        ✕
+                    </button>
+                </div>
+                <div className="space-y-2">
+                    {teamMembers.map((member, i) => (
+                        <div key={i} className="flex justify-between items-center p-2 bg-gray-700 rounded">
+                            <span className="text-white">{member.email}</span>
+                            {member.is_admin && (
+                                <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
+                                    Admin
+                                </span>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </div>
+    );
 
     if (loading) return <div className="p-5">Loading sessions...</div>;
     if (error) return <div className="p-5 text-red-500">{error}</div>;
@@ -136,6 +179,7 @@ function CompanyDashboard() {
                 </div>
             </div>
             <NavBar />
+            {showTeamMembers && <TeamMembersModal />}
         </div>
     );
 }

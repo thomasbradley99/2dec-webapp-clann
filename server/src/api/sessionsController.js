@@ -552,77 +552,37 @@ exports.updateTeamMetrics = async (req, res) => {
 
 exports.getSessionStats = async (req, res) => {
     try {
+        // Basic stats without TeamMembers table
         const stats = await db.query(`
-            WITH ValidSessions AS (
-                SELECT s.*
-                FROM Sessions s
-                WHERE footage_url LIKE '%veo.co%' 
-                   OR footage_url LIKE '%youtu%'
-            ),
-            AllTeams AS (
-                SELECT t.*, 
-                    COALESCE(vs.pending_count, 0) as pending_count,
-                    COALESCE(vs.reviewed_count, 0) as reviewed_count,
-                    COALESCE(vs.total_valid_sessions, 0) as total_valid_sessions
-                FROM Teams t
-                LEFT JOIN (
-                    SELECT 
-                        team_id,
-                        COUNT(id) FILTER (WHERE status = 'PENDING') as pending_count,
-                        COUNT(id) FILTER (WHERE status = 'REVIEWED') as reviewed_count,
-                        COUNT(id) as total_valid_sessions
-                    FROM ValidSessions
-                    GROUP BY team_id
-                ) vs ON t.id = vs.team_id
-                ORDER BY t.name ASC
-            ),
-            SessionCounts AS (
-                SELECT 
-                    (SELECT COUNT(*) FROM Sessions) as all_sessions,
-                    COUNT(*) as valid_sessions,
-                    COUNT(*) FILTER (WHERE status = 'PENDING') as pending_valid,
-                    COUNT(*) FILTER (WHERE status = 'REVIEWED') as completed_valid
-                FROM ValidSessions
-            ),
-            UserCounts AS (
-                SELECT COUNT(DISTINCT user_id) as total_accounts
-                FROM "TeamMembers"
-            ),
-            TeamCounts AS (
-                SELECT COUNT(*) as total_teams
-                FROM Teams
-            )
             SELECT 
-                sc.all_sessions,
-                sc.valid_sessions,
-                sc.pending_valid,
-                sc.completed_valid,
-                uc.total_accounts,
-                tc.total_teams,
-                COALESCE(json_agg(
-                    json_build_object(
-                        'id', at.id,
-                        'name', at.name,
-                        'pending_count', at.pending_count,
-                        'reviewed_count', at.reviewed_count,
-                        'total_valid_sessions', at.total_valid_sessions
-                    ) ORDER BY at.name
-                ), '[]') as team_stats
-            FROM SessionCounts sc, UserCounts uc, TeamCounts tc
-            CROSS JOIN AllTeams at
-            GROUP BY 
-                sc.all_sessions,
-                sc.valid_sessions,
-                sc.pending_valid,
-                sc.completed_valid,
-                uc.total_accounts,
-                tc.total_teams;
+                (SELECT COUNT(*) FROM Teams) as total_teams,
+                (SELECT COUNT(*) FROM Users) as total_accounts,
+                (SELECT COUNT(*) FROM Sessions) as all_sessions,
+                (SELECT COUNT(*) FROM Sessions WHERE status = 'PENDING') as pending_valid,
+                (SELECT COUNT(*) FROM Sessions WHERE status = 'REVIEWED') as completed_valid,
+                (
+                    SELECT json_agg(team_data)
+                    FROM (
+                        SELECT 
+                            t.id,
+                            t.name,
+                            0 as member_count, -- Placeholder until TeamMembers table exists
+                            COUNT(s.id) as total_valid_sessions,
+                            COUNT(s.id) FILTER (WHERE s.status = 'PENDING') as pending_count,
+                            COUNT(s.id) FILTER (WHERE s.status = 'REVIEWED') as reviewed_count
+                        FROM Teams t
+                        LEFT JOIN Sessions s ON t.id = s.team_id
+                        GROUP BY t.id, t.name
+                        ORDER BY t.name
+                    ) team_data
+                ) as team_stats
         `);
 
+        console.log('Stats query result:', stats.rows[0]);
         res.json(stats.rows[0]);
     } catch (err) {
-        console.error('Failed to fetch session stats:', err);
-        res.status(500).json({ error: 'Failed to fetch session stats' });
+        console.error('Failed to fetch session stats:', err.message);
+        res.status(500).json({ error: 'Failed to fetch stats', details: err.message });
     }
 };
 
