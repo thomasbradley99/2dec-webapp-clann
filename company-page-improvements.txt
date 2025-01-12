@@ -1,0 +1,56 @@
+CLANN - Company Page & Landing Page Improvements
+
+1. COMPANY DASHBOARD ENHANCEMENTS
+   - Team Member Display
+     • List all team members
+     • Show who uploaded each session
+     • Display member roles (admin/regular)
+     • Add member management UI
+   - Upload History
+     • Show who uploaded each analysis
+     • Track upload dates
+     • Filter by uploader
+
+2. LANDING PAGE REVAMP
+   - Hero Section
+     • Full-screen video background showing game + CV analysis overlay
+     • Single clear message: "Track Your Team's Performance"
+     • Two buttons only:
+       - "Try One Game Free"
+       - "£75/month Unlimited"
+
+   - Scrollable Sections Below
+     • Live demo of computer vision analysis
+     • What you get:
+       - Heatmaps
+       - Sprint tracking
+       - Game momentum
+     • Sample analysis showcase
+     • Simple pricing comparison
+       - Free: 1 game
+       - Pro: £75/month unlimited games
+
+3. IMPLEMENTATION PRIORITY
+   A. Company Dashboard
+      1. Add team member list component
+      2. Integrate uploader info in SessionCard
+      3. Add member management UI
+      4. Update session history with uploader details
+
+   B. Landing Page
+      1. Create video hero with CV overlay
+      2. Implement simplified CTA buttons
+      3. Build scrollable showcase sections
+      4. Add sample analysis display
+
+4. DATABASE UPDATES NEEDED
+   - Add uploader tracking to Sessions table
+   - Add member roles to TeamMembers table
+   - Add trial tracking for free games
+
+5. NEW COMPONENTS NEEDED
+   - TeamMembersList.js
+   - UploaderHistory.js
+   - VideoHeroBackground.js
+   - AnalysisShowcase.js
+   - SimplePricing.js

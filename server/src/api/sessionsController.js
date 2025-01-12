@@ -585,8 +585,8 @@ exports.getSessionStats = async (req, res) => {
                 FROM ValidSessions
             ),
             UserCounts AS (
-                SELECT COUNT(*) as total_accounts
-                FROM Users
+                SELECT COUNT(DISTINCT user_id) as total_accounts
+                FROM "TeamMembers"
             ),
             TeamCounts AS (
                 SELECT COUNT(*) as total_teams
