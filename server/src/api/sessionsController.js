@@ -552,37 +552,42 @@ exports.updateTeamMetrics = async (req, res) => {
 
 exports.getSessionStats = async (req, res) => {
     try {
-        // Basic stats without TeamMembers table
-        const stats = await db.query(`
+        // First, let's log the raw counts
+        const debugCounts = await db.query(`
             SELECT 
-                (SELECT COUNT(*) FROM Teams) as total_teams,
-                (SELECT COUNT(*) FROM Users) as total_accounts,
-                (SELECT COUNT(*) FROM Sessions) as all_sessions,
-                (SELECT COUNT(*) FROM Sessions WHERE status = 'PENDING') as pending_valid,
-                (SELECT COUNT(*) FROM Sessions WHERE status = 'REVIEWED') as completed_valid,
-                (
-                    SELECT json_agg(team_data)
-                    FROM (
-                        SELECT 
-                            t.id,
-                            t.name,
-                            0 as member_count, -- Placeholder until TeamMembers table exists
-                            COUNT(s.id) as total_valid_sessions,
-                            COUNT(s.id) FILTER (WHERE s.status = 'PENDING') as pending_count,
-                            COUNT(s.id) FILTER (WHERE s.status = 'REVIEWED') as reviewed_count
-                        FROM Teams t
-                        LEFT JOIN Sessions s ON t.id = s.team_id
-                        GROUP BY t.id, t.name
-                        ORDER BY t.name
-                    ) team_data
-                ) as team_stats
+                status,
+                COUNT(*) as count,
+                STRING_AGG(id::text, ', ') as session_ids,
+                STRING_AGG(team_id::text, ', ') as team_ids
+            FROM Sessions 
+            WHERE footage_url LIKE '%veo.co%' 
+               OR footage_url LIKE '%youtu%'
+            GROUP BY status
+        `);
+        console.log('Debug counts:', debugCounts.rows);
+
+        const stats = await db.query(`
+            WITH ValidSessions AS (
+                SELECT * FROM Sessions 
+                WHERE (footage_url LIKE '%veo.co%' OR footage_url LIKE '%youtu%')
+                  AND footage_url IS NOT NULL
+                  AND footage_url != ''
+            )
+            SELECT 
+                (SELECT COUNT(DISTINCT team_id) FROM ValidSessions) as total_teams,
+                (SELECT COUNT(DISTINCT tm.user_id) 
+                 FROM TeamMembers tm
+                 INNER JOIN ValidSessions s ON tm.team_id = s.team_id) as total_accounts,
+                (SELECT COUNT(*) FROM ValidSessions) as all_sessions,
+                (SELECT COUNT(*) FROM ValidSessions WHERE status = 'PENDING') as pending_valid,
+                (SELECT COUNT(*) FROM ValidSessions WHERE status = 'REVIEWED') as completed_valid
         `);
 
         console.log('Stats query result:', stats.rows[0]);
         res.json(stats.rows[0]);
     } catch (err) {
-        console.error('Failed to fetch session stats:', err.message);
-        res.status(500).json({ error: 'Failed to fetch stats', details: err.message });
+        console.error('Failed to fetch stats:', err);
+        res.status(500).json({ error: 'Failed to fetch stats' });
     }
 };
 

@@ -25,8 +25,26 @@ function StatsOverview() {
     const fetchStats = async () => {
         try {
             const sessionStats = await sessionService.getSessionStats();
-            console.log('Received stats:', sessionStats);
-            setStats(sessionStats);
+            console.log('Raw stats from DB:', sessionStats);
+
+            // Count only sessions with valid URLs
+            const validSessions = sessionStats.team_stats.reduce((acc, team) => {
+                const validPending = Number(team.pending_count || 0);
+                const validComplete = Number(team.reviewed_count || 0);
+                return {
+                    pending: acc.pending + validPending,
+                    complete: acc.complete + validComplete
+                };
+            }, { pending: 0, complete: 0 });
+
+            console.log('Processed valid sessions:', validSessions);
+
+            setStats({
+                ...sessionStats,
+                pending_valid: validSessions.pending,    // Should be 4
+                completed_valid: validSessions.complete, // Should be 2
+                valid_sessions: validSessions.pending + validSessions.complete
+            });
         } catch (err) {
             console.error('Failed to fetch stats:', err);
         } finally {
