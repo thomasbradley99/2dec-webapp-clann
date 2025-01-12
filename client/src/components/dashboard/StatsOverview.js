@@ -27,23 +27,15 @@ function StatsOverview() {
             const sessionStats = await sessionService.getSessionStats();
             console.log('Raw stats from DB:', sessionStats);
 
-            // Count only sessions with valid URLs
-            const validSessions = sessionStats.team_stats.reduce((acc, team) => {
-                const validPending = Number(team.pending_count || 0);
-                const validComplete = Number(team.reviewed_count || 0);
-                return {
-                    pending: acc.pending + validPending,
-                    complete: acc.complete + validComplete
-                };
-            }, { pending: 0, complete: 0 });
-
-            console.log('Processed valid sessions:', validSessions);
-
+            // No need for the reduce calculation since server is giving correct numbers
             setStats({
-                ...sessionStats,
-                pending_valid: validSessions.pending,    // Should be 4
-                completed_valid: validSessions.complete, // Should be 2
-                valid_sessions: validSessions.pending + validSessions.complete
+                total_teams: Number(sessionStats.total_teams),
+                total_accounts: Number(sessionStats.total_accounts),
+                all_sessions: Number(sessionStats.all_sessions),
+                pending_valid: Number(sessionStats.pending_valid),
+                completed_valid: Number(sessionStats.completed_valid),
+                valid_sessions: Number(sessionStats.pending_valid) + Number(sessionStats.completed_valid),
+                team_stats: sessionStats.team_stats || []  // Handle missing team_stats
             });
         } catch (err) {
             console.error('Failed to fetch stats:', err);
