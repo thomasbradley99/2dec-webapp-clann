@@ -42,7 +42,21 @@ function Login() {
     <div className="min-h-screen bg-gray-900">
       {/* Hero Section */}
       <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-green-600/20 to-gray-900/95" />
+        {/* Hero Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
+        >
+          <source src="/videos/hero-video.mp4" type="video/mp4" />
+        </video>
+
+        {/* Gradient Overlay - adjusted to work with video */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/50 to-gray-900/95" />
+
+        {/* Existing Hero Content */}
         <div className="relative max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
             {/* Left side - Title */}
@@ -52,8 +66,11 @@ function Login() {
                 AI-Powered Sports Analytics
               </h1>
               <p className="text-xl text-gray-300">
-                Transform your game footage into actionable insights with our advanced AI analysis platform
+                Want your team distances tracked? Upload your URL to us.
               </p>
+              <div className="mt-8 text-3xl font-bold text-blue-400">
+                £75/month
+              </div>
             </div>
 
             {/* Right side - Login Form */}
