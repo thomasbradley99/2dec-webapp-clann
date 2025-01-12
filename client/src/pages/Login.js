@@ -5,7 +5,7 @@ import userService from '../services/userService';
 import activityImg from '../static/team_0_activity.png';
 import heatmapImg from '../static/heatmap_team_0.png';
 import sprintsImg from '../static/sprint_diagram_team_0_distance.png';
-import clannLogo from '../assets/images/clann-logo.png';
+import clannLogo from '../assets/images/luke-logo.png';
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -69,12 +69,16 @@ function Login() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               {/* Left side - Title */}
               <div className="text-center lg:text-left lg:max-w-2xl">
-                <img src={clannLogo} alt="Clann" className="h-16 mx-auto lg:mx-0 mb-6" />
-                <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-3">
-                  Video Analysis, by AI
+                <img
+                  src={clannLogo}
+                  alt="Clann"
+                  className="h-24 mx-auto lg:mx-0 mb-8 transform hover:scale-105 transition-transform"
+                />
+                <h1 className="text-4xl md:text-6xl font-extrabold font-display text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-blue-500 mb-6">
+                  AI Player Tracking
                 </h1>
-                <p className="text-lg font-medium text-gray-300 mb-6">
-                  Upload your match. Let AI do the work.
+                <p className="text-xl font-medium font-sans tracking-wide text-gray-200 mt-4">
+                  Professional Analysis. For Everyone.
                 </p>
               </div>
 
