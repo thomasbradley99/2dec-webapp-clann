@@ -199,38 +199,58 @@ function Login() {
         </div>
       </div>
 
-      {/* Pricing/CTA Section - moved before demo */}
+      {/* Pricing/CTA Section */}
       <div className="max-w-3xl mx-auto px-4 pb-24 text-center">
         <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
-          <div className="text-2xl font-bold text-green-400 mb-4">
-            Try Your First Game Free
-          </div>
-          <div className="text-3xl font-bold text-blue-400 mb-8">
-            Then £75/month unlimited games
-          </div>
-          <button
-            onClick={() => {
-              setIsLogin(false);  // Switch to register mode
-              const registerForm = document.querySelector('#register-form');
-              if (registerForm) {
-                registerForm.scrollIntoView({ behavior: 'smooth' });
-                const emailInput = registerForm.querySelector('input[type="email"]');
-                if (emailInput) {
-                  emailInput.focus();
+          {/* Free Trial */}
+          <div className="mb-8">
+            <div className="text-3xl font-bold text-green-400 mb-2">
+              Free Trial
+            </div>
+            <ul className="text-gray-300 space-y-2 mb-4">
+              <li>✓ First Game Analysis</li>
+              <li>✓ Create Team</li>
+              <li>✓ Full Feature Access</li>
+            </ul>
+            <button
+              onClick={() => {
+                setIsLogin(false);
+                const registerForm = document.querySelector('#register-form');
+                if (registerForm) {
+                  registerForm.scrollIntoView({ behavior: 'smooth' });
+                  const emailInput = registerForm.querySelector('input[type="email"]');
+                  if (emailInput) {
+                    emailInput.focus();
+                  }
                 }
-              }
-            }}
-            className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white text-xl font-medium rounded-lg"
-          >
-            Start Free Trial
-          </button>
+              }}
+              className="px-8 py-3 bg-green-500 hover:bg-green-600 text-white text-xl font-medium rounded-lg transition-colors"
+            >
+              Start Free Trial
+            </button>
+          </div>
+
+          {/* Divider */}
+          <div className="border-t border-gray-700 my-8" />
+
+          {/* Premium */}
+          <div>
+            <div className="text-3xl font-bold text-blue-400 mb-2">
+              £75/month
+            </div>
+            <ul className="text-gray-300 space-y-2 mb-4">
+              <li>✓ Unlimited Games</li>
+              <li>✓ Priority Analysis</li>
+              <li>✓ Multiple Teams</li>
+            </ul>
+          </div>
         </div>
       </div>
 
-      {/* Keep demo video section at the bottom */}
+      {/* Demo video section temporarily disabled */}
+      {/*
       <div className="max-w-5xl mx-auto px-4 pb-24">
         <div className="bg-gray-800/50 rounded-xl overflow-hidden">
-          {/* Header */}
           <div className="p-8 text-center">
             <div className="flex items-center justify-center gap-3 mb-4">
               <span className="text-3xl">🚀</span>
@@ -243,7 +263,6 @@ function Login() {
             </p>
           </div>
 
-          {/* Video Container */}
           <div className="w-full bg-black">
             <div className="max-w-4xl mx-auto">
               <div className="relative pt-[56.25%]">
@@ -279,6 +298,7 @@ function Login() {
           </div>
         </div>
       </div>
+      */}
     </div>
   );
 }
