@@ -69,10 +69,13 @@ function Login() {
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
               {/* Left side - Title */}
               <div className="text-center lg:text-left lg:max-w-2xl">
-                <img src={clannLogo} alt="Clann" className="h-20 mx-auto lg:mx-0 mb-8" />
-                <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                  Computer Vision Analysis for Your Team
+                <img src={clannLogo} alt="Clann" className="h-16 mx-auto lg:mx-0 mb-6" />
+                <h1 className="text-4xl md:text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-blue-500 mb-3">
+                  Video Analysis, by AI
                 </h1>
+                <p className="text-lg font-medium text-gray-300 mb-6">
+                  Upload your match. Let AI do the work.
+                </p>
               </div>
 
               {/* Right side - Login Form */}
