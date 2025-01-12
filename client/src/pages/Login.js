@@ -40,21 +40,25 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-gray-900">
-      {/* Hero Section */}
-      <div className="relative overflow-hidden">
+      {/* Hero Section - added min-h-screen */}
+      <div className="relative overflow-hidden min-h-screen">
         {/* Hero Video Background */}
         <video
           autoPlay
           loop
           muted
           playsInline
-          className="absolute inset-0 w-full h-full object-cover opacity-40"
+          className="absolute inset-0 w-full h-full object-cover opacity-80"
         >
           <source src="/videos/hero-video.mp4" type="video/mp4" />
         </video>
 
-        {/* Gradient Overlay - adjusted to work with video */}
-        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/80 via-gray-900/50 to-gray-900/95" />
+        {/* Gradient Overlay - adjusted for sharper bottom fade */}
+        <div className="absolute inset-0 bg-gradient-to-b from-gray-900/20 via-gray-900/10 to-gray-900/100"
+          style={{
+            background: 'linear-gradient(to bottom, rgba(17,24,39,0.2) 0%, rgba(17,24,39,0.1) 80%, rgba(17,24,39,1) 98%)'
+          }}
+        />
 
         {/* Existing Hero Content */}
         <div className="relative max-w-7xl mx-auto px-4 py-24 sm:px-6 lg:px-8">
@@ -63,14 +67,8 @@ function Login() {
             <div className="text-center lg:text-left lg:max-w-2xl">
               <img src={clannLogo} alt="Clann" className="h-20 mx-auto lg:mx-0 mb-8" />
               <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">
-                AI-Powered Sports Analytics
+                Computer Vision Analysis for Your Team
               </h1>
-              <p className="text-xl text-gray-300">
-                Want your team distances tracked? Upload your URL to us.
-              </p>
-              <div className="mt-8 text-3xl font-bold text-blue-400">
-                £75/month
-              </div>
             </div>
 
             {/* Right side - Login Form */}
@@ -99,7 +97,11 @@ function Login() {
                   </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-4">
+                <form
+                  id="register-form"
+                  onSubmit={handleSubmit}
+                  className="space-y-4"
+                >
                   <input
                     type="email"
                     value={email}
@@ -197,7 +199,35 @@ function Login() {
         </div>
       </div>
 
-      {/* Demo Section */}
+      {/* Pricing/CTA Section - moved before demo */}
+      <div className="max-w-3xl mx-auto px-4 pb-24 text-center">
+        <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
+          <div className="text-2xl font-bold text-green-400 mb-4">
+            Try Your First Game Free
+          </div>
+          <div className="text-3xl font-bold text-blue-400 mb-8">
+            Then £75/month unlimited games
+          </div>
+          <button
+            onClick={() => {
+              setIsLogin(false);  // Switch to register mode
+              const registerForm = document.querySelector('#register-form');
+              if (registerForm) {
+                registerForm.scrollIntoView({ behavior: 'smooth' });
+                const emailInput = registerForm.querySelector('input[type="email"]');
+                if (emailInput) {
+                  emailInput.focus();
+                }
+              }
+            }}
+            className="px-8 py-4 bg-green-500 hover:bg-green-600 text-white text-xl font-medium rounded-lg"
+          >
+            Start Free Trial
+          </button>
+        </div>
+      </div>
+
+      {/* Keep demo video section at the bottom */}
       <div className="max-w-5xl mx-auto px-4 pb-24">
         <div className="bg-gray-800/50 rounded-xl overflow-hidden">
           {/* Header */}
