@@ -77,7 +77,7 @@ function Login() {
                 <h1 className="text-4xl md:text-6xl font-extrabold font-display text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-blue-500 mb-6">
                   AI Player Tracking
                 </h1>
-                <p className="text-xl font-medium font-sans tracking-wide text-gray-200 mt-4">
+                <p className="text-xl font-medium font-sans tracking-wide text-gray-200 mt-6">
                   Professional Analysis. For Everyone.
                 </p>
               </div>
@@ -169,8 +169,42 @@ function Login() {
             </div>
           </div>
 
+          {/* Performance Metrics Section */}
+          <div className="max-w-7xl mx-auto px-4 pt-4 pb-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">📏</span>
+                  <h3 className="text-sm text-gray-300">Total Distance</h3>
+                </div>
+                <div className="text-2xl font-bold text-white">78.2 km</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">⚡️</span>
+                  <h3 className="text-sm text-gray-300">Sprint Distance</h3>
+                </div>
+                <div className="text-2xl font-bold text-white">1047 m</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">🏃</span>
+                  <h3 className="text-sm text-gray-300">Total Sprints</h3>
+                </div>
+                <div className="text-2xl font-bold text-white">83</div>
+              </div>
+              <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-2xl">🚀</span>
+                  <h3 className="text-sm text-gray-300">Top Sprint Speed</h3>
+                </div>
+                <div className="text-2xl font-bold text-white">7.7 m/s</div>
+              </div>
+            </div>
+          </div>
+
           {/* Features Grid */}
-          <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto px-4 pt-8 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
                 {
@@ -210,7 +244,7 @@ function Login() {
           </div>
 
           {/* Pricing/CTA Section */}
-          <div className="max-w-3xl mx-auto px-4 pb-24 text-center">
+          <div className="max-w-3xl mx-auto px-4 pt-24 pb-24 text-center">
             <div className="bg-gray-800/50 rounded-xl p-8 border border-gray-700/50">
               {/* Free Trial */}
               <div className="mb-8">
