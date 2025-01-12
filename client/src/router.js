@@ -4,9 +4,10 @@ import Sessions from './pages/Sessions';
 import SessionDetails from './pages/SessionDetails';
 import Profile from './pages/Profile';
 import Success from './pages/Success';
-import CompanyDashboard from './pages/CompanyDashboard';
+import CompanyDashboard from './pages/company/Dashboard';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
+import SessionAnalysis from './pages/company/SessionAnalysis';
 
 const router = createBrowserRouter([
     {
@@ -46,6 +47,10 @@ const router = createBrowserRouter([
     {
         path: '/privacy',
         element: <Privacy />
+    },
+    {
+        path: '/company/analysis/:id',
+        element: <SessionAnalysis />
     }
 ]);
 

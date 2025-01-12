@@ -86,7 +86,7 @@ function CompanyDashboard() {
                             {organizedSessions.pending.map(session => (
                                 <div
                                     key={session.id}
-                                    onClick={() => navigate(`/session/${session.id}`)}
+                                    onClick={() => navigate(`/company/analysis/${session.id}`)}
                                     className="bg-gray-800 p-6 rounded-lg border-l-4 border-yellow-500 cursor-pointer 
                                              hover:bg-gray-750 transition-colors"
                                 >
@@ -115,7 +115,7 @@ function CompanyDashboard() {
                             {organizedSessions.completed.map(session => (
                                 <div
                                     key={session.id}
-                                    onClick={() => navigate(`/session/${session.id}`)}
+                                    onClick={() => navigate(`/company/analysis/${session.id}`)}
                                     className="bg-gray-800 p-6 rounded-lg border-l-4 border-green-500 cursor-pointer 
                                              hover:bg-gray-750 transition-colors"
                                 >
