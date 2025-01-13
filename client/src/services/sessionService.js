@@ -1,6 +1,6 @@
 import api from './api';
 
-const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_URL = process.env.REACT_APP_API_URL || 'https://api.clannai.com/api';
 
 const sessionService = {
     getSessions: async () => {
@@ -119,13 +119,12 @@ const sessionService = {
 
     getSessionStats: async () => {
         try {
-            console.log('Fetching stats...');
             const response = await api.get('/sessions/stats');
-            console.log('Stats response:', response.data);
+            console.log('Stats data received:', response.data);
             return response.data;
-        } catch (error) {
-            console.error('Stats error:', error.response?.data || error);
-            throw new Error('Failed to fetch session stats');
+        } catch (err) {
+            console.error('Stats error:', err);
+            throw err;
         }
     },
 
