@@ -155,7 +155,7 @@ function SessionAnalysis() {
                             value={newTitle}
                             onChange={(e) => setNewTitle(e.target.value)}
                             onKeyDown={handleTitleKeyDown}
-                            className="bg-gray-800 text-white px-3 py-2 rounded"
+                            className="bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                             autoFocus
                         />
                         <button
@@ -269,6 +269,8 @@ function SessionAnalysis() {
                                 {session[`analysis_video${index}_url`] ? (
                                     <video controls className="w-full rounded-lg">
                                         <source src={session[`analysis_video${index}_url`]} type="video/mp4" />
+                                        <source src={session[`analysis_video${index}_url`]} type="video/webm" />
+                                        Your browser does not support this video format.
                                     </video>
                                 ) : (
                                     <button

@@ -35,61 +35,61 @@ function TeamMetricsForm({ session, onUpdate }) {
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <label className="text-sm text-gray-400">Total Distance (m)</label>
-                        <input 
+                        <input
                             type="number"
                             min="0"
                             step="any"
                             value={metrics.total_distance || ''}
                             onChange={(e) => handleNumberChange('total_distance', e.target.value)}
-                            className="w-full bg-black/30 border border-gray-700 rounded p-2"
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
                     <div>
                         <label className="text-sm text-gray-400">Total Sprints</label>
-                        <input 
+                        <input
                             type="number"
                             min="0"
                             step="1"
                             value={metrics.total_sprints || ''}
                             onChange={(e) => handleNumberChange('total_sprints', e.target.value, true)}
-                            className="w-full bg-black/30 border border-gray-700 rounded p-2"
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
                     <div>
                         <label className="text-sm text-gray-400">Sprint Distance (m)</label>
-                        <input 
+                        <input
                             type="number"
                             min="0"
                             step="any"
                             value={metrics.sprint_distance || ''}
                             onChange={(e) => handleNumberChange('sprint_distance', e.target.value)}
-                            className="w-full bg-black/30 border border-gray-700 rounded p-2"
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
                     <div>
                         <label className="text-sm text-gray-400">High Intensity Sprints</label>
-                        <input 
+                        <input
                             type="number"
                             min="0"
                             step="1"
                             value={metrics.high_intensity_sprints || ''}
                             onChange={(e) => handleNumberChange('high_intensity_sprints', e.target.value, true)}
-                            className="w-full bg-black/30 border border-gray-700 rounded p-2"
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
                     <div>
                         <label className="text-sm text-gray-400">Top Sprint Speed (km/h)</label>
-                        <input 
+                        <input
                             type="number"
                             min="0"
                             step="0.1"
                             value={metrics.top_sprint_speed || ''}
                             onChange={(e) => handleNumberChange('top_sprint_speed', e.target.value)}
-                            className="w-full bg-black/30 border border-gray-700 rounded p-2"
+                            className="w-full bg-gray-800 text-white px-3 py-2 rounded focus:ring-2 focus:ring-blue-500 focus:outline-none"
                         />
                     </div>
                 </div>
-                <button 
+                <button
                     type="submit"
                     className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded hover:bg-blue-500/30"
                 >

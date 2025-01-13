@@ -8,6 +8,12 @@ const s3Client = new S3Client({
     }
 });
 
+// Add this temporary debug log
+console.log('AWS Config:', {
+    region: process.env.AWS_REGION,
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID?.slice(0, 5) + '...',
+});
+
 const uploadToS3 = async (file) => {
     const isVideo = file.mimetype.startsWith('video/');
     const key = `${isVideo ? 'analysis-videos' : 'analysis-images'}/${Date.now()}-${file.originalname}`;
@@ -15,7 +21,8 @@ const uploadToS3 = async (file) => {
         Bucket: 'end-nov-webapp-clann',
         Key: key,
         Body: file.buffer,
-        ContentType: file.mimetype
+        ContentType: isVideo ? 'video/mp4' : file.mimetype,
+        ContentEncoding: 'base64'
     };
 
     try {
