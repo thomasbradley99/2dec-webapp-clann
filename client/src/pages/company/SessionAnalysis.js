@@ -141,13 +141,13 @@ function SessionAnalysis() {
             <div className="mb-6">
                 <button
                     onClick={() => navigate('/company')}
-                    className="text-blue-400 hover:underline"
+                    className="text-blue-400 hover:text-blue-300"
                 >
                     ← Back to Dashboard
                 </button>
             </div>
 
-            <div className="bg-gray-800 p-6 rounded-lg mb-8">
+            <div className="bg-gray-900 p-6 rounded-lg mb-8">
                 {isEditingTitle ? (
                     <div className="flex gap-2 items-center">
                         <input
@@ -155,12 +155,12 @@ function SessionAnalysis() {
                             value={newTitle}
                             onChange={(e) => setNewTitle(e.target.value)}
                             onKeyDown={handleTitleKeyDown}
-                            className="bg-gray-900 text-white px-3 py-2 rounded"
+                            className="bg-gray-800 text-white px-3 py-2 rounded"
                             autoFocus
                         />
                         <button
                             onClick={handleTitleUpdate}
-                            className="bg-blue-500/20 text-blue-400 px-4 py-2 rounded hover:bg-blue-500/30"
+                            className="bg-blue-500/20 text-blue-300 px-4 py-2 rounded hover:bg-blue-500/30"
                         >
                             Save
                         </button>
@@ -196,7 +196,7 @@ function SessionAnalysis() {
                         <p>Source: {new URL(session.footage_url).hostname}</p>
                         <p>
                             <a href={session.footage_url} target="_blank" rel="noopener noreferrer"
-                                className="text-blue-400 hover:underline">
+                                className="text-blue-300 hover:text-blue-200 hover:underline">
                                 View Game Footage
                             </a>
                         </p>
@@ -215,10 +215,10 @@ function SessionAnalysis() {
 
             <div className="grid gap-6">
                 <div>
-                    <h3 className="text-xl font-bold mb-4">Analysis Images</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Analysis Images</h3>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {['HEATMAP', 'SPRINT_MAP', 'GAME_MOMENTUM'].map(type => (
-                            <div key={type} className="bg-gray-800 p-4 rounded-lg">
+                            <div key={type} className="bg-gray-900 p-4 rounded-lg">
                                 <div className="flex justify-between items-center mb-4">
                                     <h4 className="text-lg text-white">{type.replace('_', ' ')}</h4>
                                     {session[`analysis_image${type === 'HEATMAP' ? '1' : type === 'SPRINT_MAP' ? '2' : '3'}_url`] && (
@@ -240,7 +240,7 @@ function SessionAnalysis() {
                                     <button
                                         onClick={() => handleFileUpload(type)}
                                         disabled={uploading[type]}
-                                        className="w-full p-4 border-2 border-dashed border-gray-600 rounded"
+                                        className="w-full p-4 border-2 border-dashed border-gray-600 rounded text-gray-300 hover:text-white"
                                     >
                                         {uploading[type] ? 'Uploading...' : `Upload ${type.replace('_', ' ')}`}
                                     </button>
@@ -251,7 +251,7 @@ function SessionAnalysis() {
                 </div>
 
                 <div>
-                    <h3 className="text-xl font-bold mb-4">Video Analysis</h3>
+                    <h3 className="text-xl font-bold text-white mb-4">Video Analysis</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[1, 2, 3, 4, 5].map(index => (
                             <div key={index} className="bg-gray-800 p-4 rounded-lg">
@@ -274,7 +274,7 @@ function SessionAnalysis() {
                                     <button
                                         onClick={() => handleFileUpload(`VIDEO_${index}`)}
                                         disabled={uploading[`VIDEO_${index}`]}
-                                        className="w-full p-4 border-2 border-dashed border-gray-600 rounded"
+                                        className="w-full p-4 border-2 border-dashed border-gray-600 rounded text-gray-300 hover:text-white"
                                     >
                                         {uploading[`VIDEO_${index}`] ? 'Uploading...' : `Upload Video ${index}`}
                                     </button>
