@@ -189,117 +189,98 @@ function Sessions() {
     <div className="min-h-screen bg-gray-900 text-white pb-20">
       <Header />
       <div className="max-w-7xl mx-auto p-4 md:p-8">
-        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-          <h2>Access Sessions</h2>
+        <div className="max-w-4xl mx-auto">
+          {/* Logo and Title */}
+          <div className="flex items-center gap-4 mb-8">
+            <img src="/luke.svg" alt="CLANN" className="h-12 w-12" />
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
+              Access Sessions
+            </h1>
+          </div>
 
+          {/* Feedback Messages */}
           {feedback && (
-            <div style={{
-              padding: '10px',
-              marginBottom: '20px',
-              borderRadius: '4px',
-              backgroundColor: feedback.type === 'error' ? '#ff00001a' : '#0080001a',
-              color: feedback.type === 'error' ? '#ff0000' : '#008000'
-            }}>
+            <div className={`mb-6 p-4 rounded-lg border ${feedback.type === 'error'
+              ? 'bg-red-500/20 border-red-500/30 text-red-400'
+              : 'bg-green-500/20 border-green-500/30 text-green-400'
+              }`}>
               {feedback.message}
             </div>
           )}
 
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '20px',
-            marginBottom: '30px'
-          }}>
-            <div style={{
-              padding: '20px',
-              backgroundColor: '#333333',
-              borderRadius: '8px'
-            }}>
-              <h3>Upload New Game</h3>
-              <form onSubmit={handleUpload}>
-                <input
-                  type="text"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  placeholder="Game Footage URL"
-                  style={{
-                    width: '100%',
-                    marginBottom: '10px',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #555',
-                    backgroundColor: '#1a1a1a',
-                    color: 'white'
-                  }}
-                />
-                <input
-                  type="text"
-                  value={teamName}
-                  onChange={(e) => setTeamName(e.target.value)}
-                  placeholder="Team Name"
-                  style={{
-                    width: '100%',
-                    marginBottom: '10px',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #555',
-                    backgroundColor: '#1a1a1a',
-                    color: 'white'
-                  }}
-                />
+          {/* Upload and Join Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+            {/* Upload New Game */}
+            <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl">🎥</span>
+                <h2 className="text-xl font-bold">Upload New Game</h2>
+              </div>
+              <form onSubmit={handleUpload} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Game Footage URL</label>
+                  <input
+                    type="text"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    placeholder="https://app.veo.co/..."
+                    className="w-full bg-gray-900/50 text-white px-4 py-2 rounded-lg border border-gray-700/50 
+                             focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                             transition-colors"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Team Name</label>
+                  <input
+                    type="text"
+                    value={teamName}
+                    onChange={(e) => setTeamName(e.target.value)}
+                    placeholder="Team Name"
+                    className="w-full bg-gray-900/50 text-white px-4 py-2 rounded-lg border border-gray-700/50 
+                             focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                             transition-colors"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading || !url.trim() || !teamName.trim()}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: isLoading || !url.trim() || !teamName.trim() ? '#014422' : '#016F33',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: isLoading || !url.trim() || !teamName.trim() ? 'not-allowed' : 'pointer'
-                  }}
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${isLoading || !url.trim() || !teamName.trim()
+                    ? 'bg-green-600/20 text-green-400 cursor-not-allowed'
+                    : 'bg-green-600 hover:bg-green-500 text-white'
+                    }`}
                 >
                   {isLoading ? 'Uploading...' : 'Upload Game'}
                 </button>
               </form>
             </div>
 
-            <div style={{
-              padding: '20px',
-              backgroundColor: '#333333',
-              borderRadius: '8px'
-            }}>
-              <h3>Join Existing Team</h3>
-              <form onSubmit={handleJoinTeam}>
-                <input
-                  type="text"
-                  value={teamCode}
-                  onChange={(e) => setTeamCode(e.target.value)}
-                  placeholder="Enter Team Code"
-                  maxLength={6}
-                  style={{
-                    width: '100%',
-                    marginBottom: '10px',
-                    padding: '8px',
-                    borderRadius: '4px',
-                    border: '1px solid #555',
-                    backgroundColor: '#1a1a1a',
-                    color: 'white'
-                  }}
-                />
+            {/* Join Team */}
+            <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-all">
+              <div className="flex items-center gap-3 mb-6">
+                <span className="text-2xl">👥</span>
+                <h2 className="text-xl font-bold">Join Existing Team</h2>
+              </div>
+              <form onSubmit={handleJoinTeam} className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">Team Code</label>
+                  <input
+                    type="text"
+                    value={teamCode}
+                    onChange={(e) => setTeamCode(e.target.value)}
+                    placeholder="Enter Team Code"
+                    maxLength={6}
+                    className="w-full bg-gray-900/50 text-white px-4 py-2 rounded-lg border border-gray-700/50 
+                             focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 focus:outline-none
+                             transition-colors"
+                  />
+                </div>
                 <button
                   type="submit"
                   disabled={isLoading}
-                  style={{
-                    width: '100%',
-                    padding: '10px',
-                    backgroundColor: isLoading ? '#014422' : '#016F33',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '4px',
-                    cursor: isLoading ? 'not-allowed' : 'pointer'
-                  }}
+                  className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${isLoading
+                    ? 'bg-blue-600/20 text-blue-400 cursor-not-allowed'
+                    : 'bg-blue-600 hover:bg-blue-500 text-white'
+                    }`}
                 >
                   {isLoading ? 'Joining...' : 'Join Team'}
                 </button>
@@ -307,11 +288,16 @@ function Sessions() {
             </div>
           </div>
 
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-6">Your Sessions</h2>
+          {/* Sessions List */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">📊</span>
+              <h2 className="text-2xl font-bold">Your Sessions</h2>
+            </div>
+
             {isLoading ? (
               <p className="text-gray-400">Loading sessions...</p>
-            ) : sessions.length === 0 ? (
+            ) : sessions?.length === 0 ? (
               <p className="text-gray-400">No sessions uploaded yet.</p>
             ) : (
               <div className="space-y-4">
