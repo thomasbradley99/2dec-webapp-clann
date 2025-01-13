@@ -2,9 +2,36 @@ import React, { useState, useEffect } from 'react';
 import sessionService from '../services/sessionService';
 import teamService from '../services/teamService';
 import NavBar from '../components/ui/NavBar';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import SessionCard from '../components/SessionCard';
 import Header from '../components/ui/Header';
+
+const getSourceType = (url) => {
+  try {
+    const hostname = new URL(url).hostname;
+    if (hostname.includes('veo')) return 'Veo';
+    if (hostname.includes('youtube')) return 'YouTube';
+    return hostname;
+  } catch (e) {
+    return 'Unknown';
+  }
+};
+
+const getRelativeTime = (date) => {
+  const now = new Date();
+  const then = new Date(date);
+  const diffInHours = Math.floor((now - then) / (1000 * 60 * 60));
+
+  if (diffInHours < 24) {
+    return diffInHours === 1 ? '1 hour ago' : `${diffInHours} hours ago`;
+  }
+
+  const diffInDays = Math.floor(diffInHours / 24);
+  if (diffInDays === 1) return 'Yesterday';
+  if (diffInDays < 7) return `${diffInDays} days ago`;
+
+  return then.toLocaleDateString();
+};
 
 function Sessions() {
   const [url, setUrl] = useState('');
@@ -14,6 +41,7 @@ function Sessions() {
   const [sessions, setSessions] = useState([]);
   const [teamCode, setTeamCode] = useState('');
   const [selectedAnalyses, setSelectedAnalyses] = useState({});
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchSessions();
@@ -190,14 +218,6 @@ function Sessions() {
       <Header />
       <div className="max-w-7xl mx-auto p-4 md:p-8">
         <div className="max-w-4xl mx-auto">
-          {/* Logo and Title */}
-          <div className="flex items-center gap-4 mb-8">
-            <img src="/luke.svg" alt="CLANN" className="h-12 w-12" />
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-green-400 to-blue-500 bg-clip-text text-transparent">
-              Access Sessions
-            </h1>
-          </div>
-
           {/* Feedback Messages */}
           {feedback && (
             <div className={`mb-6 p-4 rounded-lg border ${feedback.type === 'error'
@@ -302,10 +322,68 @@ function Sessions() {
             ) : (
               <div className="space-y-4">
                 {sessions.map(session => (
-                  <SessionCard
+                  <div
                     key={session.id}
-                    session={session}
-                  />
+                    onClick={() => navigate(`/session/${session.id}`)}
+                    className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-all cursor-pointer"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-3">
+                        <h3 className="text-xl font-bold">{session.team_name}</h3>
+
+                        <div className="space-y-2 text-sm text-gray-400">
+                          <div className="flex items-center gap-2">
+                            <span>📅</span>
+                            <span>{new Date(session.game_date).toLocaleDateString()}</span>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span>🎥</span>
+                            <a
+                              href={session.footage_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-400 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {getSourceType(session.footage_url)}
+                            </a>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            <span>🔗</span>
+                            <a
+                              href={session.footage_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-gray-500 hover:text-gray-400 truncate max-w-md"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {session.footage_url}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col items-end gap-2">
+                        <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium 
+                          ${session.status === 'PENDING'
+                            ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
+                            : 'bg-green-500/20 text-green-400 border border-green-500/30'
+                          }`}
+                        >
+                          {session.status}
+                          {session.status === 'REVIEWED' && <span className="text-lg">→</span>}
+                        </div>
+
+                        {session.status === 'REVIEWED' && (
+                          <span className="text-sm text-gray-500">
+                            Analyzed: {getRelativeTime(session.updated_at)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

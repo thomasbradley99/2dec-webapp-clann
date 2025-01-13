@@ -1,8 +1,19 @@
-cd docs/db
-npm run definition 
-npm run content 
-npm run details
-npm run get-schema
+
+
+
+
+
+
+
+
+npm run db:definition
+npm run db:content
+npm run db:details
+npm run db:get-schema
+
+
+
+
 
 node docs/db/scripts/toggleTeamPremium.js 18f994d0-6eeb-4285-a453-a8aa176b1dce false
 
