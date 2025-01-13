@@ -16,7 +16,7 @@ function TeamMembersModal({ team, members, onClose, onRemoveMember, userEmail })
 
                 <div className="space-y-3 max-h-96 overflow-y-auto">
                     {members?.map((member) => (
-                        <div key={member.id}
+                        <div key={member.user_id}
                             className="flex justify-between items-center p-3 bg-gray-900/50 
                                       rounded-lg border border-gray-700/50">
                             <div>
@@ -32,7 +32,11 @@ function TeamMembersModal({ team, members, onClose, onRemoveMember, userEmail })
                                     </span>
                                 )}
                                 {member.email !== userEmail && (
-                                    <button onClick={() => onRemoveMember(team.id, member.id)}
+                                    <button
+                                        onClick={() => {
+                                            console.log('Member data:', member);
+                                            onRemoveMember(team.id, member.user_id);
+                                        }}
                                         className="text-red-400 hover:text-red-300">
                                         Remove
                                     </button>

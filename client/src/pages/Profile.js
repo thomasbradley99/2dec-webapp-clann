@@ -189,7 +189,9 @@ function Profile() {
     const handleRemoveMember = async (teamId, userId) => {
         if (window.confirm('Are you sure you want to remove this member?')) {
             try {
+                console.log('Removing member:', { teamId, userId });
                 await teamService.removeTeamMember(teamId, userId);
+                console.log('API call successful');
                 fetchTeamMembers(teamId); // Refresh the list
                 setFeedback('Team member removed successfully');
             } catch (err) {
@@ -258,7 +260,7 @@ function Profile() {
                     team={selectedTeamForMembers}
                     members={teamMembers[selectedTeamForMembers.id]}
                     onClose={() => setShowMembersModal(false)}
-                    onRemoveMember={(email) => handleRemoveMember(selectedTeamForMembers.id, email)}
+                    onRemoveMember={handleRemoveMember}
                     userEmail={user?.email}
                 />
             )}
