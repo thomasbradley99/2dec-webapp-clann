@@ -43,33 +43,32 @@ function SessionDetails() {
     if (!session) return <div className="p-8 text-white">Session not found</div>;
 
     return (
-        <div className="min-h-screen bg-gray-900 text-white pb-20">
-            <Header />
-            <div className="max-w-7xl mx-auto p-4 md:p-8">
-                {/* Header Section */}
-                <div className="bg-gray-800/50 rounded-xl p-6 mb-8">
-                    <h1 className="text-4xl font-bold mb-4">{session.team_name}</h1>
-                    <div className="flex flex-wrap items-center gap-4">
-                        <span className={`px-4 py-1.5 rounded-full text-sm font-medium flex items-center gap-2 
-                            ${session.status === 'PENDING'
-                                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30'
-                                : 'bg-green-500/20 text-green-400 border border-green-500/30'}`}>
-                            ⚡️ {session.status}
-                        </span>
-                        <span className="text-gray-400 flex items-center gap-2">
-                            📅 {new Date(session.game_date).toLocaleDateString()}
-                        </span>
-                        <span className="text-gray-400 flex items-center gap-2">
-                            👤 {session.uploaded_by_email}
-                        </span>
+        <div className="min-h-screen bg-gray-900">
+            <div className="relative min-h-screen">
+                <Header />
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+                    {/* Header with View Footage */}
+                    <div className="flex justify-between items-start mb-12">
+                        <div className="text-center lg:text-left">
+                            <h1 className="text-4xl font-display text-transparent bg-clip-text bg-gradient-to-r from-green-400 via-emerald-400 to-blue-500">
+                                {session.team_name}
+                            </h1>
+                            <p className="text-xl text-gray-200 mt-4">
+                                {new Date(session.game_date).toLocaleDateString()}
+                            </p>
+                        </div>
+                        <a href={session.footage_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-green-500/10 text-green-400 border border-green-500/30 
+                                    px-6 py-3 rounded-xl hover:bg-green-500/20 transition-all">
+                            View Game Footage
+                        </a>
                     </div>
-                </div>
 
-                {/* Performance Metrics Section */}
-                {session.team_metrics && (
-                    <div className="mb-8">
-                        <h2 className="text-2xl font-bold mb-6">PERFORMANCE METRICS</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {/* Performance Metrics */}
+                    {session.team_metrics && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
                             {Object.entries(session.team_metrics)
                                 .filter(([key]) => key !== 'high_intensity_sprints')
                                 .sort(([keyA], [keyB]) => {
@@ -77,90 +76,84 @@ function SessionDetails() {
                                     return order.indexOf(keyA) - order.indexOf(keyB);
                                 })
                                 .map(([key, value]) => (
-                                    <div key={key}
-                                        className="bg-gray-800/50 p-6 rounded-xl border border-gray-700/50 
-                                                 hover:border-green-500/30 transition-colors">
-                                        <div className="flex items-center gap-3 mb-2">
+                                    <div key={key} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50">
+                                        <div className="flex items-center gap-3 mb-3">
                                             <span className="text-2xl">
-                                                {key.includes('sprint') ? '⚡️' :
-                                                    key.includes('distance') ? '📏' :
-                                                        key.includes('speed') ? '🚀' : '📊'}
+                                                {key === 'total_distance' ? '📏' :
+                                                    key === 'sprint_distance' ? '⚡️' :
+                                                        key === 'total_sprints' ? '🏃' : '🚀'}
                                             </span>
-                                            <h3 className="text-sm font-medium text-gray-400">
-                                                {key.split('_').map(word =>
-                                                    word.charAt(0).toUpperCase() + word.slice(1)
-                                                ).join(' ')}
+                                            <h3 className="text-sm text-gray-300">
+                                                {key.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                                             </h3>
                                         </div>
-                                        <p className="text-3xl font-bold">
+                                        <div className="text-2xl font-bold text-white">
                                             {value}
-                                            {key.includes('sprint_distance') ? ' m' :
-                                                key.includes('total_distance') ? ' km' :
-                                                    key.includes('speed') ? ' m/s' : ''}
-                                        </p>
+                                            {key === 'sprint_distance' ? ' m' :
+                                                key === 'total_distance' ? ' km' :
+                                                    key === 'top_sprint_speed' ? ' m/s' : ''}
+                                        </div>
                                     </div>
                                 ))}
                         </div>
-                    </div>
-                )}
+                    )}
 
-                {/* AI Analysis Section */}
-                {(session.analysis_image1_url || session.analysis_image2_url || session.analysis_image3_url) && (
-                    <div>
-                        <h2 className="text-2xl font-bold mb-6">AI ANALYSIS</h2>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* AI Analysis */}
+                    {(session.analysis_image1_url || session.analysis_image2_url || session.analysis_image3_url) && (
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
                             {[
                                 { type: 'HEATMAP', icon: '🔥', url: session.analysis_image1_url },
                                 { type: 'SPRINT MAP', icon: '⚡', url: session.analysis_image2_url },
                                 { type: 'GAME MOMENTUM', icon: '📈', url: session.analysis_image3_url }
                             ].map(analysis => analysis.url && (
                                 <div key={analysis.type}
-                                    className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 
-                                             hover:border-green-500/30 transition-colors">
+                                    className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-blue-500/30 transition-all">
                                     <div className="flex items-center gap-3 mb-4">
                                         <span className="text-2xl">{analysis.icon}</span>
-                                        <h3 className="text-xl font-bold">{analysis.type}</h3>
+                                        <h3 className="text-xl text-white">{analysis.type}</h3>
                                     </div>
-                                    <img
-                                        src={analysis.url}
-                                        alt={`${analysis.type} Analysis`}
-                                        className="w-full rounded-lg object-contain bg-black/30"
-                                        style={{ maxHeight: '300px' }}
-                                    />
+                                    <img src={analysis.url}
+                                        alt={analysis.type}
+                                        className="w-full h-auto object-contain rounded-lg bg-black/30" />
                                 </div>
                             ))}
                         </div>
+                    )}
+
+                    {/* Video Highlights */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
+                        {[1, 2, 3, 4, 5].map(index => {
+                            const videoUrl = session[`analysis_video${index}_url`];
+                            return videoUrl && (
+                                <div key={index}
+                                    className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-purple-500/30 
+                                              transition-all transform hover:-translate-y-1">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <span className="text-2xl">🎬</span>
+                                        <h3 className="text-xl text-white">Highlight {index}</h3>
+                                    </div>
+                                    <div className="bg-black/30 rounded-lg overflow-hidden">
+                                        <video controls className="w-full h-auto">
+                                            <source src={videoUrl} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                )}
 
-                {/* Video Analysis Section */}
-                {[1, 2, 3, 4, 5].map(index => {
-                    const videoUrl = session[`analysis_video${index}_url`];
-                    return videoUrl && (
-                        <div key={index} className="bg-gray-800/50 rounded-xl p-6 border border-gray-700/50 hover:border-green-500/30 transition-colors mb-6">
-                            <h2 className="text-2xl font-bold mb-4">Video Analysis {index}</h2>
-                            <video controls className="w-full rounded-lg">
-                                <source src={videoUrl} type="video/mp4" />
-                                Your browser does not support the video tag.
-                            </video>
-                        </div>
-                    );
-                })}
-
-                <div className="mt-12 pt-6 border-t border-gray-700">
-                    <div className="flex justify-end">
-                        <button
-                            onClick={handleDelete}
-                            className="px-4 py-2 bg-red-500/20 text-red-400 
-                                     border border-red-500 rounded hover:bg-red-500/30 
-                                     transition-colors"
-                        >
+                    {/* Delete button moved above NavBar */}
+                    <div className="flex justify-center pb-20 pt-8">
+                        <button onClick={handleDelete}
+                            className="bg-red-500/10 text-red-400 border border-red-500/30 
+                                         px-6 py-3 rounded-xl hover:bg-red-500/20 transition-all">
                             Delete Session
                         </button>
                     </div>
                 </div>
+                <NavBar />
             </div>
-            <NavBar />
         </div>
     );
 }
