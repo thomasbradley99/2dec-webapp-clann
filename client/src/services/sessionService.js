@@ -120,10 +120,19 @@ const sessionService = {
     getSessionStats: async () => {
         try {
             const response = await api.get('/sessions/stats');
-            console.log('Stats data received:', response.data);
+            console.log('Full response:', {
+                status: response.status,
+                headers: response.headers,
+                data: response.data
+            });
             return response.data;
         } catch (err) {
-            console.error('Stats error:', err);
+            console.error('Stats error details:', {
+                name: err.name,
+                message: err.message,
+                response: err.response?.data,
+                status: err.response?.status
+            });
             throw err;
         }
     },

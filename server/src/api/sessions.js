@@ -64,25 +64,29 @@ router.put('/:sessionId/title', auth, async (req, res) => {
 // Add this route explicitly
 router.get("/stats", auth, async (req, res) => {
     try {
-        // Super simple query first to test
+        console.log('Stats request received, auth:', req.user);
+
         const stats = await db.query(`
             SELECT 
                 COUNT(*) as all_sessions,
                 COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_valid,
-                COUNT(CASE WHEN status = 'REVIEWED' THEN 1 END) as completed_valid
+                COUNT(CASE WHEN status = 'REVIEWED' THEN 1 END) as completed_valid,
+                COUNT(DISTINCT team_id) as total_teams
             FROM Sessions
+            WHERE footage_url LIKE '%veo.co%' 
+               OR footage_url LIKE '%youtu%'
         `);
 
-        console.log('Basic stats:', stats.rows[0]);
-        res.json({
-            ...stats.rows[0],
-            total_teams: 0,
-            total_accounts: 0,
-            team_stats: []
-        });
+        console.log('Query result:', stats.rows[0]);
+
+        res.json(stats.rows[0]);
     } catch (err) {
-        console.error('Stats route error:', err);
-        res.status(500).json({ error: 'Failed to fetch stats', details: err.message });
+        console.error('Stats route error:', {
+            message: err.message,
+            query: err.query,
+            stack: err.stack
+        });
+        res.status(500).json({ error: 'Failed to fetch stats' });
     }
 });
 
