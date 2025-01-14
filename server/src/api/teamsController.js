@@ -66,7 +66,7 @@ exports.joinTeam = async (req, res) => {
     try {
         // First find the team
         const teamResult = await db.query(
-            `SELECT id 
+            `SELECT id, team_code 
              FROM Teams 
              WHERE team_code = $1`,
             [team_code]
@@ -77,44 +77,16 @@ exports.joinTeam = async (req, res) => {
         }
 
         const teamId = teamResult.rows[0].id;
+        const isStMarys = teamResult.rows[0].team_code === 'STMARY';
 
-        // Check member count
-        const memberCountResult = await db.query(
-            'SELECT COUNT(*) as count FROM TeamMembers WHERE team_id = $1',
-            [teamId]
-        );
-
-        if (memberCountResult.rows[0].count >= MAX_TEAM_MEMBERS) {
-            return res.status(400).json({
-                error: `Team has reached maximum capacity of ${MAX_TEAM_MEMBERS} members`
-            });
-        }
-
-        // Check if user is already a member
-        const memberCheck = await db.query(
-            `SELECT team_id 
-             FROM TeamMembers 
-             WHERE team_id = $1 AND user_id = $2`,
-            [teamId, userId]
-        );
-
-        if (memberCheck.rows.length > 0) {
-            return res.status(400).json({ error: 'Already a member of this team' });
-        }
-
-        // Get team details first
-        const teamDetails = await db.query(
-            `SELECT name 
-             FROM Teams 
-             WHERE id = $1`,
-            [teamId]
-        );
+        // For St Mary's team, only the original admin should be admin
+        const isAdmin = false;  // Default to false for all joins
 
         // Add user to team
         await db.query(
             `INSERT INTO TeamMembers (team_id, user_id, is_admin)
-             VALUES ($1, $2, false)`,
-            [teamId, userId]
+             VALUES ($1, $2, $3)`,
+            [teamId, userId, isAdmin]
         );
 
         res.json({
@@ -132,6 +104,22 @@ exports.getTeamMembers = async (req, res) => {
     const userId = req.user.id;
 
     try {
+        // First check if this is St Mary's team and get user role
+        const userCheck = await db.query(
+            `SELECT t.team_code, u.role 
+             FROM Teams t, Users u
+             WHERE t.id = $1 AND u.id = $2`,
+            [teamId, userId]
+        );
+
+        // Block access if it's St Mary's and user is not company member
+        if (userCheck.rows[0]?.team_code === 'STMARY' &&
+            userCheck.rows[0]?.role !== 'COMPANY_MEMBER') {
+            return res.status(403).json({
+                error: 'Demo team members are private'
+            });
+        }
+
         // First verify user is a member of this team
         const memberCheck = await db.query(
             `SELECT team_id 

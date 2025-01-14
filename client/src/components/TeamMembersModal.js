@@ -31,12 +31,9 @@ function TeamMembersModal({ team, members, onClose, onRemoveMember, userEmail })
                                         Admin
                                     </span>
                                 )}
-                                {member.email !== userEmail && (
+                                {member.email !== userEmail && team.is_admin && (
                                     <button
-                                        onClick={() => {
-                                            console.log('Member data:', member);
-                                            onRemoveMember(team.id, member.user_id);
-                                        }}
+                                        onClick={() => onRemoveMember(team.id, member.user_id)}
                                         className="text-red-400 hover:text-red-300">
                                         Remove
                                     </button>

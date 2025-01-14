@@ -85,13 +85,28 @@ function Profile() {
     const fetchTeamMembers = async (teamId) => {
         setMembersLoading(true);
         try {
+            // Check if this is St Mary's team
+            const team = teams.find(t => t.id === teamId);
+            if (team?.team_code === 'STMARY') {
+                setFeedback({
+                    type: 'info',
+                    message: 'Demo team members are private'
+                });
+                setShowMembersModal(false);
+                return;
+            }
+
             const members = await teamService.getTeamMembers(teamId);
             setTeamMembers(prev => ({
                 ...prev,
                 [teamId]: members
             }));
         } catch (err) {
-            setError(err.message);
+            setFeedback({
+                type: 'error',
+                message: err.message || 'Failed to fetch team members'
+            });
+            setShowMembersModal(false);
         } finally {
             setMembersLoading(false);
         }

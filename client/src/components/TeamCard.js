@@ -41,11 +41,13 @@ function TeamCard({ team, onUpgrade, onShare, onViewMembers }) {
                                  hover:bg-blue-400/20 transition-all">
                     Share Code
                 </button>
-                <button onClick={onViewMembers}
-                    className="flex-1 text-sm px-3 py-2 bg-purple-400/10 text-purple-400 rounded-lg 
-                                 hover:bg-purple-400/20 transition-all">
-                    View Members
-                </button>
+                {team.team_code !== 'STMARY' && (
+                    <button onClick={onViewMembers}
+                        className="flex-1 text-sm px-3 py-2 bg-purple-400/10 text-purple-400 rounded-lg 
+                                     hover:bg-purple-400/20 transition-all">
+                        View Members
+                    </button>
+                )}
             </div>
         </div>
     );
