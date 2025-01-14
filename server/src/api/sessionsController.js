@@ -552,6 +552,8 @@ exports.updateTeamMetrics = async (req, res) => {
 
 exports.getSessionStats = async (req, res) => {
     try {
+        console.log('Starting stats calculation...');
+
         // First, let's log the raw counts
         const debugCounts = await db.query(`
             SELECT 
@@ -586,7 +588,11 @@ exports.getSessionStats = async (req, res) => {
         console.log('Stats query result:', stats.rows[0]);
         res.json(stats.rows[0]);
     } catch (err) {
-        console.error('Failed to fetch stats:', err);
+        console.error('Failed to fetch stats:', {
+            error: err.message,
+            stack: err.stack,
+            query: err.query // This will show the failing query if it exists
+        });
         res.status(500).json({ error: 'Failed to fetch stats' });
     }
 };
@@ -633,5 +639,26 @@ exports.getAllSessions = async (req, res) => {
     } catch (err) {
         console.error('Failed to fetch sessions:', err);
         res.status(500).json({ error: 'Failed to fetch sessions' });
+    }
+};
+
+exports.getStats = async (req, res) => {
+    try {
+        console.log('Stats request received');
+
+        // Your existing query to get stats
+        const statsQuery = await db.query(`
+            SELECT /* your existing stats query */
+        `);
+
+        console.log('Stats query result:', statsQuery.rows[0]);
+
+        res.json(statsQuery.rows[0]);
+    } catch (err) {
+        console.error('Stats error:', {
+            message: err.message,
+            stack: err.stack
+        });
+        res.status(500).json({ error: 'Failed to fetch stats' });
     }
 };
