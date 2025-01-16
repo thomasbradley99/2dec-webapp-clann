@@ -106,6 +106,18 @@ function SessionAnalysis() {
         }
     };
 
+    const getSourceType = (url) => {
+        if (!url) return 'Unknown';
+        try {
+            const hostname = new URL(url).hostname;
+            if (hostname.includes('veo.co')) return '🎥 Veo';
+            if (hostname.includes('youtu')) return '🔗 YouTube';
+            return '🔗 Other';
+        } catch {
+            return '🔗 Other';
+        }
+    };
+
     const TeamMembersModal = () => (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
             <div className="bg-gray-800 p-6 rounded-lg max-w-lg w-full">
@@ -193,7 +205,7 @@ function SessionAnalysis() {
                 <div className="flex justify-between items-center mt-4">
                     <div className="text-sm text-gray-300 space-y-2">
                         <p>Uploaded: {new Date(session.created_at).toLocaleDateString()}</p>
-                        <p>Source: {new URL(session.footage_url).hostname}</p>
+                        <p>Source: {getSourceType(session.footage_url)}</p>
                         <p>
                             <a href={session.footage_url} target="_blank" rel="noopener noreferrer"
                                 className="text-blue-300 hover:text-blue-200 hover:underline">

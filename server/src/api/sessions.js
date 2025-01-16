@@ -66,26 +66,23 @@ router.get("/stats", auth, async (req, res) => {
     try {
         console.log('Stats request received, auth:', req.user);
 
+        // Simpler, more efficient query
         const stats = await db.query(`
             SELECT 
-                COUNT(*) as all_sessions,
-                COUNT(CASE WHEN status = 'PENDING' THEN 1 END) as pending_valid,
-                COUNT(CASE WHEN status = 'REVIEWED' THEN 1 END) as completed_valid,
-                COUNT(DISTINCT team_id) as total_teams
+                COALESCE(COUNT(DISTINCT team_id), 0) as total_teams,
+                COALESCE(COUNT(DISTINCT uploaded_by), 0) as total_accounts,
+                COALESCE(COUNT(*), 0) as all_sessions,
+                COALESCE(SUM(CASE WHEN status = 'PENDING' THEN 1 ELSE 0 END), 0) as pending_valid,
+                COALESCE(SUM(CASE WHEN status = 'REVIEWED' THEN 1 ELSE 0 END), 0) as completed_valid
             FROM Sessions
-            WHERE footage_url LIKE '%veo.co%' 
-               OR footage_url LIKE '%youtu%'
+            WHERE footage_url IS NOT NULL
+            AND (footage_url LIKE '%veo.co%' OR footage_url LIKE '%youtu%')
         `);
 
         console.log('Query result:', stats.rows[0]);
-
         res.json(stats.rows[0]);
     } catch (err) {
-        console.error('Stats route error:', {
-            message: err.message,
-            query: err.query,
-            stack: err.stack
-        });
+        console.error('Stats route error:', err);
         res.status(500).json({ error: 'Failed to fetch stats' });
     }
 });
